@@ -1,0 +1,95 @@
+"""
+cli/cli.py
+CLI wrapper untuk Teleoder.
+"""
+
+import argparse
+import sys
+
+from core.downloader import run_downloader, DownloadCallbacks, VALID_FILTERS
+
+
+# ─── Callbacks untuk CLI ──────────────────────────────────────────────────────
+
+def _make_cli_callbacks() -> DownloadCallbacks:
+    """Buat callbacks yang print output ke terminal."""
+
+    def on_progress(percent: float, speed: str, eta: str):
+        # Print di baris yang sama, timpa terus
+        print(f"\r  Progress: {percent:5.1f}%  |  {speed}  |  ETA: {eta}   ", end="", flush=True)
+
+    def on_file(current: int, total: int, filename: str):
+        # Newline dulu biar tidak menimpa progress bar sebelumnya
+        print(f"\n[{current}/{total}] {filename}")
+
+    def on_done():
+        print("\n\nSelesai! Semua file berhasil didownload.")
+
+    def on_error(message: str):
+        print(f"\n[ERROR] {message}", file=sys.stderr)
+
+    return DownloadCallbacks(
+        on_progress=on_progress,
+        on_file=on_file,
+        on_done=on_done,
+        on_error=on_error,
+    )
+
+
+# ─── Argument Parser ──────────────────────────────────────────────────────────
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="teleoder",
+        description="Download media dari channel Telegram.",
+    )
+
+    parser.add_argument(
+        "channel",
+        help="Channel ID, username, atau link. Contoh: @mychannel / https://t.me/mychannel",
+    )
+
+    parser.add_argument(
+        "--filter",
+        "-f",
+        choices=sorted(VALID_FILTERS),
+        default="all",
+        help="Filter tipe media. Default: all",
+    )
+
+    return parser
+
+
+# ─── Entry Point CLI ──────────────────────────────────────────────────────────
+
+def main(args=None):
+    """
+    Entry point CLI. Bisa dipanggil langsung atau dari main.py.
+
+    Parameters
+    ----------
+    args : list[str] | None
+        Kalau None, ambil dari sys.argv. Berguna untuk testing.
+    """
+    parser = _build_parser()
+    parsed = parser.parse_args(args)
+
+    config = {
+        "channel": parsed.channel,
+        "filter": parsed.filter,
+    }
+
+    print(f"Channel : {config['channel']}")
+    print(f"Filter  : {config['filter']}")
+    print("Memulai download...\n")
+
+    callbacks = _make_cli_callbacks()
+
+    try:
+        run_downloader(config, callbacks)
+    except ValueError as e:
+        print(f"[ERROR] {e}", file=sys.stderr)
+        sys.exit(1)
+    except KeyboardInterrupt:
+        print("\n\nDibatalkan oleh user.")
+        sys.exit(0)
