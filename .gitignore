@@ -212,3 +212,5 @@ config.py
 session/
 *.session-journal
 *.log
+
+test_entity.py
