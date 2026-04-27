@@ -33,7 +33,12 @@ def run_menu():
 
         filter_type = filter_map.get(filter_choice, "all")
 
+        limit_input = input("Masukkan limit file (kosongkan untuk semua): ").strip()
+
         args = [channel, "--filter", filter_type]
+        if limit_input.isdigit() and int(limit_input) > 0:
+            args += ["--limit", limit_input]
+
         cli_main(args)
 
     elif choice == "3":

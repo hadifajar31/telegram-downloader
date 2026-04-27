@@ -144,6 +144,7 @@ class Downloader:
         """
         self.channel = parse_channel(config.get("channel", ""))
         self.filter = config.get("filter", "all")
+        self.limit = config.get("limit", None)
         self.callbacks = callbacks
         self._stop_event = threading.Event()
 
@@ -161,15 +162,10 @@ class Downloader:
         """Jalankan proses download secara synchronous."""
         os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-        client = TelegramClient(SESSION_PATH, API_ID, API_HASH)
         try:
-            client.connect()
-
-            if not client.is_user_authorized():
-                self.callbacks.error("Belum login. Jalankan 'python login.py' terlebih dahulu.")
-                client.disconnect()
-                return
-            self._download_all(client)
+            with TelegramClient(SESSION_PATH, API_ID, API_HASH) as client:
+                client.start(phone=PHONE_NUMBER)
+                self._download_all(client)
 
         except errors.FloodWaitError as e:
             self.callbacks.error(f"Flood wait: harus tunggu {e.seconds} detik.")
@@ -213,6 +209,11 @@ class Downloader:
         if total == 0:
             self.callbacks.error("Tidak ada media yang cocok dengan filter.")
             return
+
+        if self.limit is not None:
+            messages_to_download = messages_to_download[:self.limit]
+
+        total = len(messages_to_download)
 
         for idx, (message, media_type) in enumerate(messages_to_download, start=1):
             if self._stop_event.is_set():

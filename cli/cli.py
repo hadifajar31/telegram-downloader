@@ -57,6 +57,14 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Filter tipe media. Default: all",
     )
 
+    parser.add_argument(
+        "--limit",
+        "-l",
+        type=int,
+        default=None,
+        help="Jumlah file yang didownload. Default: semua",
+    )
+
     return parser
 
 
@@ -77,10 +85,12 @@ def main(args=None):
     config = {
         "channel": parsed.channel,
         "filter": parsed.filter,
+        "limit": parsed.limit,
     }
 
     print(f"Channel : {config['channel']}")
     print(f"Filter  : {config['filter']}")
+    print(f"Limit  : {config['limit']}")
     print("Memulai download...\n")
 
     callbacks = _make_cli_callbacks()
