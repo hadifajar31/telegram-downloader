@@ -5,6 +5,7 @@ CLI wrapper untuk Teleoder.
 
 import argparse
 import sys
+import time
 
 from core.downloader import run_downloader, DownloadCallbacks, VALID_FILTERS
 
@@ -102,4 +103,5 @@ def main(args=None):
         return
     except KeyboardInterrupt:
         print("\n\nSTOPPED oleh user.")
+        time.sleep(0.5)
         return

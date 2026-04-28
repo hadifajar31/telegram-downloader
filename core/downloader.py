@@ -5,20 +5,34 @@ Logic utama download media dari Telegram.
 
 import os
 import time
+import json
 import threading
 from typing import Callable, Optional
 
-from telethon.sync import TelegramClient
 from telethon import errors
-from telethon.tl.types import (
-    MessageMediaPhoto,
-    MessageMediaDocument,
-    DocumentAttributeFilename,
-)
+from telethon.sync import TelegramClient
+from telethon.tl.types import DocumentAttributeFilename
 
 from config.config import API_ID, API_HASH, PHONE_NUMBER, SESSION_PATH, OUTPUT_DIR
 from core.utils import parse_channel, safe_filename, format_size, format_eta
 
+# ─── Resume ──────────────────────────────────────────────────────────────
+
+RESUME_PATH = "data/resume.json"
+
+def load_resume():
+    if not os.path.exists(RESUME_PATH):
+        return {}
+    try:
+        with open(RESUME_PATH, "r") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def save_resume(data):
+    os.makedirs("data", exist_ok=True)
+    with open(RESUME_PATH, "w") as f:
+        json.dump(data, f, indent=2)
 
 # ─── Tipe Filter ──────────────────────────────────────────────────────────────
 
@@ -159,6 +173,7 @@ class Downloader:
         self._stop_event.set()
 
     def run(self):
+        self._stop_event.clear()
         """Jalankan proses download secara synchronous."""
         os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -185,16 +200,25 @@ class Downloader:
         return t
 
     def _download_all(self, client: TelegramClient):
+        self._stop_event.clear()
         """Ambil semua pesan dan download media yang lolos filter."""
         # Resolve entity dulu, penting untuk private channel
         # Telethon butuh integer untuk numeric ID, bukan string
         channel_ref = int(self.channel) if self.channel.lstrip('-').isdigit() else self.channel
         entity = client.get_entity(channel_ref)
+        # ─── Resume ─────────────────────
+        resume_data = load_resume()
+        channel_key = str(self.channel)
+
+        last_id = resume_data.get(channel_key, 0)
+
+        if last_id > 0:
+            print(f"Melanjutkan dari last_id: {last_id}")
 
         # Kumpulkan dulu semua message yang akan didownload
         messages_to_download = []
 
-        for message in client.iter_messages(entity):
+        for message in client.iter_messages(entity, min_id=last_id):
             if self._stop_event.is_set():
                 print("\nSTOPPED")
                 return
@@ -228,11 +252,18 @@ class Downloader:
             # Skip kalau sudah ada
             if os.path.exists(output_path):
                 self.callbacks.file(idx, total, f"[SKIP] {filename}")
+
+                resume_data[channel_key] = message.id
+                save_resume(resume_data)
+
                 continue
 
             self.callbacks.file(idx, total, filename)
 
             self._download_single(client, message, output_path)
+
+            resume_data[channel_key] = message.id
+            save_resume(resume_data)
 
         if not self._stop_event.is_set():
             self.callbacks.done()
