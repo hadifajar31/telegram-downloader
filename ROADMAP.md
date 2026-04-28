@@ -1,9 +1,5 @@
 # 🚀 Teleoder Roadmap
 
-## 🔥 NEXT (Fokus Sekarang)
-
-* [ ] Resume otomatis (last_id)
-
 ---
 
 ## 🥇 Phase 1 — Core Features
@@ -34,17 +30,24 @@
 
 ## 🥉 Phase 3 — System Improvements
 
-* [x] Skip file yang sudah ada
+- [x] Skip file yang sudah ada
 
-* [ ] Handle FloodWait otomatis
+- [ ] Handle FloodWait otomatis
+- [ ] Delay otomatis
+- [ ] Lanjut tanpa crash
 
-* [ ] Delay otomatis
+- [ ] Skip file duplikat (MD5)
+- [ ] Compare folder (anti re-download)
 
-* [ ] Lanjut tanpa crash
+- [ ] Filter media: ikuti cara kirim Telegram (bukan mime type)
+- [ ] Cleanup import tidak terpakai (MessageMediaPhoto, MessageMediaDocument)
 
-* [ ] Skip file duplikat (MD5)
+- [ ] Struktur folder:
+  - per channel
+  - per filter (belum decided)
 
-* [ ] Compare folder (anti re-download)
+- [ ] Penamaan file:
+  - format belum decided
 
 ---
 
