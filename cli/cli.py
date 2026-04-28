@@ -99,7 +99,7 @@ def main(args=None):
         run_downloader(config, callbacks)
     except ValueError as e:
         print(f"[ERROR] {e}", file=sys.stderr)
-        sys.exit(1)
+        return
     except KeyboardInterrupt:
         print("\n\nSTOPPED oleh user.")
-        sys.exit(0)
+        return
