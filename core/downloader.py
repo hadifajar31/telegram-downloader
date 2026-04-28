@@ -196,6 +196,7 @@ class Downloader:
 
         for message in client.iter_messages(entity):
             if self._stop_event.is_set():
+                print("\nSTOPPED")
                 return
 
             media_type = _get_media_type(message)
@@ -217,6 +218,7 @@ class Downloader:
 
         for idx, (message, media_type) in enumerate(messages_to_download, start=1):
             if self._stop_event.is_set():
+                print("\nSTOPPED")
                 break
 
             filename = _get_filename(message, media_type, message.id)
