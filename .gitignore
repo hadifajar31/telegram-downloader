@@ -214,3 +214,4 @@ session/
 *.log
 
 test_entity.py
+data/
