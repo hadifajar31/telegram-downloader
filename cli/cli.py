@@ -101,5 +101,5 @@ def main(args=None):
         print(f"[ERROR] {e}", file=sys.stderr)
         sys.exit(1)
     except KeyboardInterrupt:
-        print("\n\nDibatalkan oleh user.")
+        print("\n\nSTOPPED oleh user.")
         sys.exit(0)
