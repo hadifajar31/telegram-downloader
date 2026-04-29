@@ -4,23 +4,30 @@ Logic utama download media dari Telegram.
 """
 
 import os
-import time
 import json
+import time
 import threading
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 
-from telethon import errors
 from telethon.sync import TelegramClient
+from telethon import errors
 from telethon.tl.types import DocumentAttributeFilename
 
 from config.config import API_ID, API_HASH, PHONE_NUMBER, SESSION_PATH, OUTPUT_DIR
 from core.utils import parse_channel, safe_filename, format_size, format_eta
 
-# ─── Resume ──────────────────────────────────────────────────────────────
+
+# ─── Tipe Filter ──────────────────────────────────────────────────────────────
+
+VALID_FILTERS = {"all", "photo", "video", "document"}
+
+
+# ─── Resume ───────────────────────────────────────────────────────────────────
 
 RESUME_PATH = "data/resume.json"
 
-def load_resume():
+
+def load_resume() -> dict:
     if not os.path.exists(RESUME_PATH):
         return {}
     try:
@@ -29,14 +36,11 @@ def load_resume():
     except Exception:
         return {}
 
-def save_resume(data):
+
+def save_resume(data: dict):
     os.makedirs("data", exist_ok=True)
     with open(RESUME_PATH, "w") as f:
         json.dump(data, f, indent=2)
-
-# ─── Tipe Filter ──────────────────────────────────────────────────────────────
-
-VALID_FILTERS = {"all", "photo", "video", "document"}
 
 
 # ─── Callbacks ────────────────────────────────────────────────────────────────
@@ -51,7 +55,7 @@ class DownloadCallbacks:
     def __init__(
         self,
         on_progress: Optional[Callable[[float, str, str], None]] = None,
-        on_file: Optional[Callable[[int, int, str], None]] = None,
+        on_file: Optional[Callable[[int, Union[int, str], str], None]] = None,
         on_done: Optional[Callable[[], None]] = None,
         on_error: Optional[Callable[[str], None]] = None,
     ):
@@ -59,20 +63,20 @@ class DownloadCallbacks:
         Parameters
         ----------
         on_progress(percent, speed, eta)
-            percent : float  → 0.0 - 100.0
-            speed   : str    → contoh "1.23 MB/s"
-            eta     : str    → contoh "2m 30d"
+            percent : float       → 0.0 - 100.0
+            speed   : str         → contoh "1.23 MB/s"
+            eta     : str         → contoh "2m 30d"
 
         on_file(current, total, filename)
-            current  : int   → nomor file sekarang
-            total    : int   → total file
-            filename : str   → nama file
+            current  : int        → nomor file sekarang
+            total    : int | str  → total file, atau "?" kalau tidak diketahui
+            filename : str        → nama file
 
         on_done()
             Dipanggil setelah semua file selesai didownload.
 
         on_error(message)
-            message : str    → pesan error
+            message : str         → pesan error
         """
         self.on_progress = on_progress
         self.on_file = on_file
@@ -83,7 +87,7 @@ class DownloadCallbacks:
         if self.on_progress:
             self.on_progress(percent, speed, eta)
 
-    def file(self, current: int, total: int, filename: str):
+    def file(self, current: int, total: Union[int, str], filename: str):
         if self.on_file:
             self.on_file(current, total, filename)
 
@@ -151,8 +155,9 @@ class Downloader:
         Parameters
         ----------
         config : dict
-            channel     : str   → channel ID / username
-            filter      : str   → "all" | "photo" | "video" | "document"
+            channel : str   → channel ID / username
+            filter  : str   → "all" | "photo" | "video" | "document"
+            limit   : int   → jumlah file, None = semua
 
         callbacks : DownloadCallbacks
         """
@@ -173,8 +178,8 @@ class Downloader:
         self._stop_event.set()
 
     def run(self):
-        self._stop_event.clear()
         """Jalankan proses download secara synchronous."""
+        self._stop_event.clear()
         os.makedirs(OUTPUT_DIR, exist_ok=True)
 
         try:
@@ -200,73 +205,68 @@ class Downloader:
         return t
 
     def _download_all(self, client: TelegramClient):
-        self._stop_event.clear()
-        """Ambil semua pesan dan download media yang lolos filter."""
-        # Resolve entity dulu, penting untuk private channel
-        # Telethon butuh integer untuk numeric ID, bukan string
+        """Stream pesan dan download langsung per file."""
+        # Resolve entity, penting untuk private channel
         channel_ref = int(self.channel) if self.channel.lstrip('-').isdigit() else self.channel
         entity = client.get_entity(channel_ref)
-        # ─── Resume ─────────────────────
+
+        # Resume
         resume_data = load_resume()
         channel_key = str(self.channel)
-
         last_id = resume_data.get(channel_key, 0)
 
         if last_id > 0:
             print(f"Melanjutkan dari last_id: {last_id}")
 
-        # Kumpulkan dulu semua message yang akan didownload
-        messages_to_download = []
+        # Total untuk callback: pakai limit kalau ada, "?" kalau tidak
+        total: Union[int, str] = "?"
+
+        downloaded_count = 0  # untuk logic limit
+        display_count = 0     # untuk UI (nomor file)
 
         for message in client.iter_messages(entity, min_id=last_id):
             if self._stop_event.is_set():
-                print("\nSTOPPED")
+                self.callbacks.error("STOPPED")
                 return
 
             media_type = _get_media_type(message)
             if not _passes_filter(media_type, self.filter):
                 continue
 
-            messages_to_download.append((message, media_type))
-
-        total = len(messages_to_download)
-
-        if total == 0:
-            self.callbacks.error("Tidak ada media yang cocok dengan filter.")
-            return
-
-        if self.limit is not None:
-            messages_to_download = messages_to_download[:self.limit]
-
-        total = len(messages_to_download)
-
-        for idx, (message, media_type) in enumerate(messages_to_download, start=1):
-            if self._stop_event.is_set():
-                print("\nSTOPPED")
-                break
-
             filename = _get_filename(message, media_type, message.id)
-
             output_path = os.path.join(OUTPUT_DIR, filename)
 
-            # Skip kalau sudah ada
-            if os.path.exists(output_path):
-                self.callbacks.file(idx, total, f"[SKIP] {filename}")
+            # Naik sekali di awal loop
+            display_count += 1
 
+            # Skip
+            if os.path.exists(output_path):
+                self.callbacks.file(display_count, total, f"(SKIP) {filename}")
+                self.callbacks.progress(100.0, "SKIP", "-")
                 resume_data[channel_key] = message.id
                 save_resume(resume_data)
-
                 continue
 
-            self.callbacks.file(idx, total, filename)
-
+            # Download
+            downloaded_count += 1
+            self.callbacks.file(display_count, total, filename)
             self._download_single(client, message, output_path)
-
             resume_data[channel_key] = message.id
             save_resume(resume_data)
 
+            # Early stop
+            if self.limit is not None and downloaded_count >= self.limit:
+                break
+
         if not self._stop_event.is_set():
-            self.callbacks.done()
+            if self.limit is not None:
+                if downloaded_count >= self.limit:
+                    print("\n\n" + f"✔ Download selesai ({downloaded_count}/{self.limit} file berhasil)")
+                else:
+                    print("\n\n" + f"⚠ Download selesai ({downloaded_count}/{self.limit} file ditemukan)")
+            else:
+                skip_count = display_count - downloaded_count
+                print("\n\n" + f"ℹ Selesai! {display_count} file diproses ({downloaded_count} download, {skip_count} skip)")
 
     def _download_single(self, client: TelegramClient, message, output_path: str):
         """Download satu file dengan progress callback."""
@@ -299,7 +299,6 @@ class Downloader:
             percent = (received / total * 100) if total > 0 else 0
             self.callbacks.progress(percent, speed_str, eta_str)
 
-        # Download
         client.download_media(
             message,
             file=output_path,
@@ -318,6 +317,7 @@ def run_downloader(config: dict, callbacks: DownloadCallbacks):
     config : dict
         channel : str
         filter  : str
+        limit   : int | None
     callbacks : DownloadCallbacks
     """
     downloader = Downloader(config, callbacks)
