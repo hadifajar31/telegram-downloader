@@ -6,7 +6,7 @@
 
 * [x] Limit
 * [x] Stop download kapan saja
-* [ ] Resume otomatis (last_id)
+* [x] Resume otomatis (last_id)
 
 ---
 
@@ -26,28 +26,32 @@
 
 * [ ] Compare folder lokal
 
+* [ ] Target-based download (limit pintar, skip tidak dihitung)
+
 ---
 
 ## 🥉 Phase 3 — System Improvements
 
 - [x] Skip file yang sudah ada
+- [x] Cleanup import tidak terpakai (MessageMediaPhoto, MessageMediaDocument)
 
-- [ ] Handle FloodWait otomatis
-- [ ] Delay otomatis
+- [ ] Handle FloodWait otomatis (delay + retry)
+- [ ] Error handling lebih rapi (cleanup Telethon, no database lock)
 - [ ] Lanjut tanpa crash
 
 - [ ] Skip file duplikat (MD5)
 - [ ] Compare folder (anti re-download)
 
 - [ ] Filter media: ikuti cara kirim Telegram (bukan mime type)
-- [ ] Cleanup import tidak terpakai (MessageMediaPhoto, MessageMediaDocument)
 
 - [ ] Struktur folder:
   - per channel
-  - per filter (belum decided)
+  - per filter
 
-- [ ] Penamaan file:
-  - format belum decided
+- [ ] Penamaan file (belum decided)
+
+- [ ] Sinkronisasi file
+- [ ] Skip duplikat antar channel
 
 ---
 
@@ -72,28 +76,15 @@
 
 > Tidak urgent, kerjakan setelah fitur utama selesai
 
+* [ ] Logout akun
+* [ ] Optimize save resume (batch, tidak setiap pesan)
+* [ ] Rapihin output CLI
+* [ ] Tampilkan total asli + total setelah resume
+* [ ] Validasi input CLI lebih ketat
+* [ ] Refactor kecil (cleanup code)
 * [ ] Stop: hindari double print "STOPPED"
 * [ ] Improve display limit (None → all)
 * [ ] Rapihin output progress
-* [ ] Validasi input CLI lebih ketat
-* [ ] Refactor kecil (cleanup code)
-
----
-
-## 🧠 Catatan
-
-* Fokus 1 fitur sampai selesai
-* Jangan lompat-lompat
-* Minor → masuk Parking Lot dulu
-* Setelah 1 fitur selesai → boleh ambil 1–2 minor
-
----
-
-## 🎯 Rule
-
-* Feature → Stabil → Baru Optimasi
-* 1 branch = 1 tujuan
-* Jangan campur fitur + improvement
 
 ---
 
@@ -101,4 +92,7 @@
 
 ✔ Limit
 ✔ Stop
-➡️ NEXT: Resume
+✔ Resume
+➡️ NEXT: 
+- [ ] Streaming mode (scan + download langsung)
+- [ ] Early stop saat limit tercapai
