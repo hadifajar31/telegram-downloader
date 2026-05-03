@@ -1,17 +1,30 @@
 # Teleoder
 
 CLI tool untuk download media dari channel Telegram menggunakan Telethon.
+Mendukung streaming download, smart limit, dan resume otomatis.
+
+---
+
+## ⚡ Highlight
+Streaming download (tanpa scan list dulu)
+Smart limit (skip file tidak dihitung)
+Resume otomatis per channel (last_id)
+Skip file yang sudah ada (no re-download)
 
 ---
 
 ## ✨ Fitur
 
+* CLI + menu interaktif
 * Download media dari channel Telegram
 * Filter media (photo, video, document)
 * Progress download (speed + ETA)
-* Skip file yang sudah ada (no re-download)
-* CLI + menu interaktif
+* Resume otomatis (last_id per channel)
 * Sistem login (OTP + 2FA)
+* Skip file yang sudah ada
+* Smart limit (skip tidak dihitung)
+* Stop download kapan saja
+* Streaming download
 
 ---
 
@@ -45,9 +58,15 @@ PHONE_NUMBER = "..."
 
 ## 🔐 Login
 
+Jalankan:
+
 ```bash
-python main.py --login
+python main.py
 ```
+
+Lalu pilih:
+
+1. Login
 
 Masukkan OTP dan password (jika ada 2FA).
 
@@ -58,7 +77,7 @@ Masukkan OTP dan password (jika ada 2FA).
 ### Mode CLI
 
 ```bash
-python main.py --cli @channelname --filter photo
+python main.py --cli @channelname --filter photo --limit 5
 ```
 
 ### Mode Menu
@@ -78,11 +97,10 @@ Lalu pilih:
 ---
 
 ## 🎯 Filter yang tersedia
-
-* `all` (default)
-* `photo`
-* `video`
-* `document`
+all (default)
+photo
+video
+document
 
 ---
 
@@ -94,22 +112,22 @@ File akan disimpan di:
 ~/Downloads/Tele
 ```
 
----
-
-## ⚠️ Catatan
-
-* Jangan upload `config.py` (berisi data pribadi)
-* Jangan upload folder `session/`
-* Gunakan `config.example.py` sebagai template
+## 📊 Contoh Output
+```
+✔ Download selesai (2/2 file berhasil)
+⚠ Download selesai (1/2 file ditemukan)
+ℹ Selesai! 7 file diproses (3 download, 4 skip)
+```
 
 ---
 
 ## 🛠️ Roadmap
-
-* [ ] Limit download (`--limit`)
-* [ ] Resume download
-* [ ] GUI (CustomTkinter)
-* [ ] Multi account session
+ Limit download
+ Resume download
+ Streaming download
+ FloodWait handling
+ GUI (CustomTkinter)
+ Multi account session
 
 ---
 
