@@ -26,7 +26,7 @@
 
 * [ ] Compare folder lokal
 
-* [ ] Target-based download (limit pintar, skip tidak dihitung)
+* [x] Target-based download (limit pintar, skip tidak dihitung)
 
 ---
 
@@ -34,6 +34,8 @@
 
 - [x] Skip file yang sudah ada
 - [x] Cleanup import tidak terpakai (MessageMediaPhoto, MessageMediaDocument)
+- [x] Streaming mode (scan + download langsung)
+- [x] Early stop saat limit tercapai
 
 - [ ] Handle FloodWait otomatis (delay + retry)
 - [ ] Error handling lebih rapi (cleanup Telethon, no database lock)
@@ -93,6 +95,10 @@
 ✔ Limit
 ✔ Stop
 ✔ Resume
+✔ Streaming
+✔ Target-based limit (smart)
+✔ Early stop
+✔ Skip existing file
+
 ➡️ NEXT: 
-- [ ] Streaming mode (scan + download langsung)
-- [ ] Early stop saat limit tercapai
+- [ ] Handle FloodWait otomatis (delay + retry)
