@@ -37,7 +37,7 @@
 - [x] Streaming mode (scan + download langsung)
 - [x] Early stop saat limit tercapai
 
-- [ ] Handle FloodWait otomatis (delay + retry)
+- [x] Handle FloodWait otomatis (delay + retry)
 - [ ] Error handling lebih rapi (cleanup Telethon, no database lock)
 - [ ] Lanjut tanpa crash
 
@@ -101,4 +101,4 @@
 ✔ Skip existing file
 
 ➡️ NEXT: 
-- [ ] Handle FloodWait otomatis (delay + retry)
+- Error handling lebih rapi (cleanup Telethon, no database lock)

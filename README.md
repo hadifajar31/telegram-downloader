@@ -6,10 +6,11 @@ Mendukung streaming download, smart limit, dan resume otomatis.
 ---
 
 ## ⚡ Highlight
-Streaming download (tanpa scan list dulu)
-Smart limit (skip file tidak dihitung)
-Resume otomatis per channel (last_id)
-Skip file yang sudah ada (no re-download)
+* Resume otomatis per channel (last_id)
+* Skip file yang sudah ada (no re-download)
+* Smart limit (skip file tidak dihitung)
+* Streaming download (tanpa scan list dulu)
+* Handle FloodWait otomatis (delay + retry)
 
 ---
 
@@ -31,7 +32,7 @@ Skip file yang sudah ada (no re-download)
 ## 📦 Instalasi
 
 ```bash
-git clone https://github.com/USERNAME/teleoder.git
+git clone https://github.com/hadifajar31/telegram-downloader
 cd teleoder
 pip install -r requirements.txt
 ```
@@ -122,12 +123,12 @@ File akan disimpan di:
 ---
 
 ## 🛠️ Roadmap
- Limit download
- Resume download
- Streaming download
- FloodWait handling
- GUI (CustomTkinter)
- Multi account session
+* Limit download
+* Resume download
+* Streaming download
+* FloodWait handling
+* GUI (CustomTkinter)
+* Multi account session
 
 ---
 
