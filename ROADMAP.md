@@ -101,4 +101,4 @@
 ✔ Skip existing file
 
 ➡️ NEXT: 
-- Error handling lebih rapi (cleanup Telethon, no database lock)
+- Filter media: ikuti cara kirim Telegram (bukan mime type)
