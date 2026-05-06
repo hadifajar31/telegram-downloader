@@ -248,18 +248,21 @@ class Downloader:
                 continue
 
             # Download
-            downloaded_count += 1
             self.callbacks.file(display_count, total, filename)
 
             while True:
                 try:
                     self._download_single(client, message, output_path)
+                    downloaded_count += 1
                     break
                 except errors.FloodWaitError as e:
                     wait_time = e.seconds
                     print(f"\nFloodWait: tunggu {wait_time} detik...")
                     time.sleep(wait_time)
                     print("Retrying...")
+                except Exception as e:
+                    self.callbacks.error(f"Gagal download {filename}: {e}")
+                    break
 
             resume_data[channel_key] = message.id
             save_resume(resume_data)

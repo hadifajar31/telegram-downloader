@@ -39,7 +39,7 @@
 
 - [x] Handle FloodWait otomatis (delay + retry)
 - [ ] Error handling lebih rapi (cleanup Telethon, no database lock)
-- [ ] Lanjut tanpa crash
+- [x] Lanjut tanpa crash
 
 - [ ] Skip file duplikat (MD5)
 - [ ] Compare folder (anti re-download)
