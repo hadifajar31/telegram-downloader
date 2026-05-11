@@ -118,3 +118,8 @@
 ✔ Skip existing file
 
 ➡️ NEXT: 
+- [ ] Struktur folder:
+  - per channel
+  - per filter
+
+- [ ] Penamaan file (belum decided)
