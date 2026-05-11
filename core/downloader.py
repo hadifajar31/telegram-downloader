@@ -104,6 +104,7 @@ class DownloadCallbacks:
         on_file: Optional[Callable[[int, Union[int, str], str], None]] = None,
         on_done: Optional[Callable[[], None]] = None,
         on_error: Optional[Callable[[str], None]] = None,
+        on_summary: Optional[Callable[[str], None]] = None,
     ):
         """
         Parameters
@@ -123,11 +124,15 @@ class DownloadCallbacks:
 
         on_error(message)
             message : str         → pesan error
+
+        on_summary(message)
+            message : str         → pesan ringkasan
         """
         self.on_progress = on_progress
         self.on_file = on_file
         self.on_done = on_done
         self.on_error = on_error
+        self.on_summary = on_summary
 
     def progress(self, percent: float, speed: str, eta: str):
         if self.on_progress:
@@ -145,6 +150,9 @@ class DownloadCallbacks:
         if self.on_error:
             self.on_error(message)
 
+    def summary(self, message: str):
+        if self.on_summary:
+            self.on_summary(message)
 
 # ─── Helper Internal ──────────────────────────────────────────────────────────
 
@@ -387,12 +395,20 @@ class Downloader:
         if not self._stop_event.is_set():
             if self.limit is not None:
                 if downloaded_count >= self.limit:
-                    print("\n\n" + f"✔ Download selesai ({downloaded_count}/{self.limit} file berhasil)")
+                    self.callbacks.summary(
+                        f"✔ Download selesai ({downloaded_count}/{self.limit} file berhasil)"
+                    )
                 else:
-                    print("\n\n" + f"⚠ Download selesai ({downloaded_count}/{self.limit} file ditemukan)")
+                    self.callbacks.summary(
+                        f"⚠ Download selesai ({downloaded_count}/{self.limit} file ditemukan)"
+                    )
             else:
                 skip_count = display_count - downloaded_count
-                print("\n\n" + f"ℹ Selesai! {display_count} file diproses ({downloaded_count} download, {skip_count} skip)")
+
+                self.callbacks.summary(
+                    f"ℹ Selesai! {display_count} file diproses "
+                    f"({downloaded_count} download, {skip_count} skip)"
+                )
 
     def _download_single(self, client: TelegramClient, message, output_path: str):
         """Download satu file dengan progress callback."""

@@ -29,11 +29,15 @@ def _make_cli_callbacks() -> DownloadCallbacks:
     def on_error(message: str):
         print(f"\n[ERROR] {message}", file=sys.stderr)
 
+    def on_summary(message: str):
+        print(f"\n{message}")
+
     return DownloadCallbacks(
         on_progress=on_progress,
         on_file=on_file,
         on_done=on_done,
         on_error=on_error,
+        on_summary=on_summary,
     )
 
 
