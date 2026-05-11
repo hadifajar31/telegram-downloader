@@ -271,7 +271,9 @@ class Downloader:
 
         callbacks : DownloadCallbacks
         """
-        self.channel = parse_channel(config.get("channel", ""))
+        raw_channel = str(config.get("channel", "")).strip()
+
+        self.channel = parse_channel(raw_channel)
         self.filter = config.get("filter", "all")
         self.limit = config.get("limit", None)
         self.callbacks = callbacks
@@ -280,7 +282,7 @@ class Downloader:
         if self.filter not in VALID_FILTERS:
             raise ValueError(f"Filter tidak valid: '{self.filter}'. Pilih dari: {VALID_FILTERS}")
 
-        if not self.channel:
+        if not raw_channel:
             raise ValueError("Channel tidak boleh kosong.")
         
         if self.limit is not None and self.limit <= 0:
