@@ -39,10 +39,11 @@
 
 - [x] Lanjut tanpa crash
 - [x] Handle FloodWait otomatis (delay + retry)
-- [ ] Error handling lebih rapi (cleanup Telethon, no database lock)
+- [x] Error handling lebih rapi (cleanup Telethon, no database lock)
   - resume hanya update saat download sukses
   - retry lebih aman
   - cleanup session lebih rapi
+- [ ] Handle Ctrl+C saat active transfer (Telethon pending task)
 
 - [ ] Skip file duplikat (MD5)
 - [ ] Compare folder (anti re-download)
@@ -101,7 +102,7 @@
 * [ ] Tampilkan total asli + total setelah resume
 * [ ] Validasi input CLI lebih ketat
 * [ ] Refactor kecil (cleanup code)
-* [ ] Stop: hindari double print "STOPPED"
+* [x] Stop: hindari double print "STOPPED"
 * [ ] Improve display limit (None → all)
 * [ ] Rapihin output progress
 
@@ -118,7 +119,7 @@
 ✔ Skip existing file
 
 ➡️ NEXT: 
-- [ ] Error handling lebih rapi (cleanup Telethon, no database lock)
-  - resume hanya update saat download sukses
-  - retry lebih aman
-  - cleanup session lebih rapi
+* [ ] Improve display limit (None → all)
+* [ ] Tampilkan total asli + total setelah resume
+* [ ] Rapihin output progress
+* [ ] Rapihin output CLI
