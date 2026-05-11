@@ -118,6 +118,7 @@
 ✔ Skip existing file
 
 ➡️ NEXT: 
-- [ ] Struktur folder:
-  - per channel
-  - per filter
+- [ ] Error handling lebih rapi (cleanup Telethon, no database lock)
+  - resume hanya update saat download sukses
+  - retry lebih aman
+  - cleanup session lebih rapi
