@@ -319,6 +319,8 @@ class Downloader:
         # Resolve entity, penting untuk private channel
         channel_ref = int(self.channel) if self.channel.lstrip('-').isdigit() else self.channel
         entity = client.get_entity(channel_ref)
+        total_messages = client.get_messages(entity, limit=1).total
+        print(f"Total   : {total_messages} messages")
 
         # Resume
         resume_data = load_resume()
