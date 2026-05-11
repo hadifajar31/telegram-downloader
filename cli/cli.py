@@ -95,9 +95,11 @@ def main(args=None):
         "limit": parsed.limit,
     }
 
+    limit_display = config["limit"] if config["limit"] is not None else "all"
+
     print(f"Channel : {config['channel']}")
     print(f"Filter  : {config['filter']}")
-    print(f"Limit  : {config['limit']}")
+    print(f"Limit   : {limit_display}")
     print("Memulai download...\n")
 
     callbacks = _make_cli_callbacks()
