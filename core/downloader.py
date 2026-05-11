@@ -335,7 +335,7 @@ class Downloader:
         downloaded_count = 0  # untuk logic limit
         display_count = 0     # untuk UI (nomor file)
 
-        for message in client.iter_messages(entity, min_id=last_id,):
+        for message in client.iter_messages(entity, min_id=last_id, reverse=True):
             if self._stop_event.is_set():
                 self.callbacks.error("STOPPED")
                 return
