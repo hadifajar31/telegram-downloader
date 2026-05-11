@@ -327,7 +327,7 @@ class Downloader:
         last_id = resume_data.get(channel_key, 0)
 
         if last_id > 0:
-            print(f"Melanjutkan dari last_id: {last_id}")
+            print(f"Resume  : last_id {last_id}")
 
         # Total untuk callback: pakai limit kalau ada, "?" kalau tidak
         total: Union[int, str] = "?"
