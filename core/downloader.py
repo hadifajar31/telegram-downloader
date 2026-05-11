@@ -102,7 +102,6 @@ class DownloadCallbacks:
         self,
         on_progress: Optional[Callable[[float, str, str], None]] = None,
         on_file: Optional[Callable[[int, Union[int, str], str], None]] = None,
-        on_done: Optional[Callable[[], None]] = None,
         on_error: Optional[Callable[[str], None]] = None,
         on_summary: Optional[Callable[[str], None]] = None,
     ):
@@ -119,9 +118,6 @@ class DownloadCallbacks:
             total    : int | str  → total file, atau "?" kalau tidak diketahui
             filename : str        → nama file
 
-        on_done()
-            Dipanggil setelah semua file selesai didownload.
-
         on_error(message)
             message : str         → pesan error
 
@@ -130,7 +126,6 @@ class DownloadCallbacks:
         """
         self.on_progress = on_progress
         self.on_file = on_file
-        self.on_done = on_done
         self.on_error = on_error
         self.on_summary = on_summary
 
@@ -141,10 +136,6 @@ class DownloadCallbacks:
     def file(self, current: int, total: Union[int, str], filename: str):
         if self.on_file:
             self.on_file(current, total, filename)
-
-    def done(self):
-        if self.on_done:
-            self.on_done()
 
     def error(self, message: str):
         if self.on_error:

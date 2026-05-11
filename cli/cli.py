@@ -23,9 +23,6 @@ def _make_cli_callbacks() -> DownloadCallbacks:
         # Newline dulu biar tidak menimpa progress bar sebelumnya
         print(f"\n[{current}/{total}] {filename}")
 
-    def on_done():
-        print("\n\nSelesai! Semua file berhasil didownload.")
-
     def on_error(message: str):
         print(f"\n[ERROR] {message}", file=sys.stderr)
 
@@ -35,7 +32,6 @@ def _make_cli_callbacks() -> DownloadCallbacks:
     return DownloadCallbacks(
         on_progress=on_progress,
         on_file=on_file,
-        on_done=on_done,
         on_error=on_error,
         on_summary=on_summary,
     )
