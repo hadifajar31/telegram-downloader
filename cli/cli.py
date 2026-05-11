@@ -112,7 +112,7 @@ def main(args=None):
         print(f"Channel : {config['channel']}")
         print(f"Filter  : {config['filter']}")
         print(f"Limit   : {limit_display}")
-        print("Memulai download...\n")
+        print("Memulai download...")
 
         downloader.run()
     except ValueError as e:
