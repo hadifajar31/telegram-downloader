@@ -77,8 +77,8 @@
 
 ## 🧩 Phase 4 — UX & Polish
 
-* [ ] Validasi input (limit, dll)
-* [ ] Output lebih clean
+* [x] Validasi input (limit, dll)
+* [x] Output lebih clean
 * [ ] Logging (opsional)
 
 ---
@@ -98,13 +98,12 @@
 
 * [ ] Logout akun
 * [ ] Optimize save resume (batch, tidak setiap pesan)
-* [ ] Rapihin output CLI
-* [ ] Tampilkan total asli + total setelah resume
-* [ ] Validasi input CLI lebih ketat
-* [ ] Refactor kecil (cleanup code)
-* [x] Stop: hindari double print "STOPPED"
-* [ ] Improve display limit (None → all)
-* [ ] Rapihin output progress
+* [x] Rapihin output CLI
+* [x] Tampilkan total asli + total setelah resume
+* [x] Validasi input CLI lebih ketat
+* [x] Refactor kecil (cleanup code)
+* [x] Improve display limit (None → all)
+* [x] Rapihin output progress
 
 ---
 
@@ -119,7 +118,3 @@
 ✔ Skip existing file
 
 ➡️ NEXT: 
-* [ ] Improve display limit (None → all)
-* [ ] Tampilkan total asli + total setelah resume
-* [ ] Rapihin output progress
-* [ ] Rapihin output CLI

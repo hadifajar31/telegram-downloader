@@ -12,6 +12,7 @@ Mendukung streaming download, smart limit, dan resume otomatis.
 * Streaming download (tanpa scan list dulu)
 * Handle FloodWait otomatis (delay + retry)
 * Advanced media filter berdasarkan cara kirim Telegram
+* CLI output lebih clean + informative
 
 ---
 
@@ -143,18 +144,25 @@ File akan disimpan di:
 
 ## 📊 Contoh Output
 ```
-✔ Download selesai (2/2 file berhasil)
-⚠ Download selesai (1/2 file ditemukan)
-ℹ Selesai! 7 file diproses (3 download, 4 skip)
+Channel : @example
+Filter  : photo
+Limit   : 5
+Memulai download...
+Total   : 120 messages
+Resume  : last_id 80
+
+[1/?] image.jpg
+  Progress: 100.0%  |  1.20 MB/s  |  ETA: 0d
+
+✔ Download selesai (5/5 file berhasil)
 ```
 
 ---
 
-## 🛠️ Roadmap
-* Limit download
-* Resume download
-* Streaming download
-* FloodWait handling
+## 🚀 Current Focus
+* Range ID download
+* Offset + Limit
+* Folder structure
 * GUI (CustomTkinter)
 * Multi account session
 
