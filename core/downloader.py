@@ -337,7 +337,6 @@ class Downloader:
 
         for message in client.iter_messages(entity, min_id=last_id, reverse=True):
             if self._stop_event.is_set():
-                self.callbacks.error("STOPPED")
                 return
 
             media_type = _get_media_type(message)
@@ -362,7 +361,6 @@ class Downloader:
             self.callbacks.file(display_count, total, filename)
 
             download_success = False
-            self.callbacks.error("[RETRY] FloodWait 5s")
 
             while True:
                 try:
