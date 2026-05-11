@@ -191,9 +191,12 @@ def _get_media_type(message) -> Optional[str]:
         if DocumentAttributeAnimated in attr_types:
             return "gif"
 
-        # 4. Video biasa
-        if DocumentAttributeVideo in attr_types:
-            return "video_document"
+        # 4. Video biasa Telegram
+        if (
+            DocumentAttributeVideo in attr_types
+            and DocumentAttributeFilename in attr_types
+        ):
+            return "video"
 
         # 5-6. Audio / Voice
         for attr in attrs:
@@ -207,6 +210,10 @@ def _get_media_type(message) -> Optional[str]:
         # 8. Photo as document (gambar dikirim sebagai file)
         if mime.startswith("image/"):
             return "photo_document"
+        
+        # 9. Video as document/file
+        if mime.startswith("video/"):
+            return "video_document"
 
         # Ambil filename untuk cek archive
         filename = ""
