@@ -362,6 +362,7 @@ class Downloader:
             self.callbacks.file(display_count, total, filename)
 
             download_success = False
+            self.callbacks.error("[RETRY] FloodWait 5s")
 
             while True:
                 try:
@@ -371,9 +372,8 @@ class Downloader:
                     break
                 except errors.FloodWaitError as e:
                     wait_time = e.seconds
-                    print(f"\nFloodWait: tunggu {wait_time} detik...")
+                    self.callbacks.error(f"[RETRY] FloodWait {wait_time}s")
                     time.sleep(wait_time)
-                    print("Retrying...")
                 except Exception as e:
                     self.callbacks.error(f"Gagal download {filename}: {e}")
                     break
