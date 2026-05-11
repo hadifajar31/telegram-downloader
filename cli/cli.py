@@ -21,13 +21,16 @@ def _make_cli_callbacks() -> DownloadCallbacks:
 
     def on_file(current: int, total: int, filename: str):
         # Newline dulu biar tidak menimpa progress bar sebelumnya
-        print(f"\n[{current}/{total}] {filename}")
+        print()
+        print(f"[{current}/{total}] {filename}")
 
     def on_error(message: str):
-        print(f"\n[ERROR] {message}", file=sys.stderr)
+        print(file=sys.stderr)
+        print(f"[ERROR] {message}", file=sys.stderr)
 
     def on_summary(message: str):
-        print(f"\n{message}")
+        print()
+        print(message)
 
     return DownloadCallbacks(
         on_progress=on_progress,
