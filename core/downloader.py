@@ -335,7 +335,7 @@ class Downloader:
         downloaded_count = 0  # untuk logic limit
         display_count = 0     # untuk UI (nomor file)
 
-        for message in client.iter_messages(entity, min_id=last_id):
+        for message in client.iter_messages(entity, min_id=last_id,):
             if self._stop_event.is_set():
                 self.callbacks.error("STOPPED")
                 return
@@ -361,10 +361,13 @@ class Downloader:
             # Download
             self.callbacks.file(display_count, total, filename)
 
+            download_success = False
+
             while True:
                 try:
                     self._download_single(client, message, output_path)
                     downloaded_count += 1
+                    download_success = True
                     break
                 except errors.FloodWaitError as e:
                     wait_time = e.seconds
@@ -375,8 +378,9 @@ class Downloader:
                     self.callbacks.error(f"Gagal download {filename}: {e}")
                     break
 
-            resume_data[channel_key] = message.id
-            save_resume(resume_data)
+            if download_success:
+                resume_data[channel_key] = message.id
+                save_resume(resume_data)
 
             # Early stop kalau limit tercapai
             if self.limit is not None and downloaded_count >= self.limit:
