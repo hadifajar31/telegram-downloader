@@ -37,14 +37,31 @@
 - [x] Streaming mode (scan + download langsung)
 - [x] Early stop saat limit tercapai
 
+- [x] Lanjut tanpa crash
 - [x] Handle FloodWait otomatis (delay + retry)
 - [ ] Error handling lebih rapi (cleanup Telethon, no database lock)
-- [x] Lanjut tanpa crash
+  - resume hanya update saat download sukses
+  - retry lebih aman
+  - cleanup session lebih rapi
 
 - [ ] Skip file duplikat (MD5)
 - [ ] Compare folder (anti re-download)
 
-- [ ] Filter media: ikuti cara kirim Telegram (bukan mime type)
+- [x] Advanced media filter
+  - ikuti cara kirim Telegram
+  - bukan hanya mime type
+  - support:
+    - photo
+    - photo_document
+    - video
+    - video_note
+    - video_document
+    - gif
+    - audio
+    - voice
+    - archive
+    - sticker
+    - document
 
 - [ ] Struktur folder:
   - per channel
@@ -101,4 +118,6 @@
 ✔ Skip existing file
 
 ➡️ NEXT: 
-- Filter media: ikuti cara kirim Telegram (bukan mime type)
+- [ ] Struktur folder:
+  - per channel
+  - per filter

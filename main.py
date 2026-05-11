@@ -20,17 +20,47 @@ def run_menu():
 
             print("\nPilih filter:")
             print("1. All")
-            print("2. Photo")
-            print("3. Video")
-            print("4. Document")
 
-            filter_choice = input("Masukkan pilihan (1/2/3/4): ").strip()
+            print("2. Photo")
+            print("3. Photo Document")
+
+            print("4. Video")
+            print("5. Video Note")
+            print("6. Video Document")
+
+            print("7. GIF")
+
+            print("8. Audio")
+            print("9. Voice")
+
+            print("10. Archive")
+
+            print("11. Sticker")
+
+            print("12. Document")
+
+            filter_choice = input("Masukkan pilihan: ").strip()
 
             filter_map = {
                 "1": "all",
+
                 "2": "photo",
-                "3": "video",
-                "4": "document",
+                "3": "photo_document",
+
+                "4": "video",
+                "5": "video_note",
+                "6": "video_document",
+
+                "7": "gif",
+
+                "8": "audio",
+                "9": "voice",
+
+                "10": "archive",
+
+                "11": "sticker",
+
+                "12": "document",
             }
 
             filter_type = filter_map.get(filter_choice, "all")

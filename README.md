@@ -11,6 +11,7 @@ Mendukung streaming download, smart limit, dan resume otomatis.
 * Smart limit (skip file tidak dihitung)
 * Streaming download (tanpa scan list dulu)
 * Handle FloodWait otomatis (delay + retry)
+* Advanced media filter berdasarkan cara kirim Telegram
 
 ---
 
@@ -18,7 +19,18 @@ Mendukung streaming download, smart limit, dan resume otomatis.
 
 * CLI + menu interaktif
 * Download media dari channel Telegram
-* Filter media (photo, video, document)
+* Advanced media filter:
+  - photo
+  - photo_document
+  - video
+  - video_note
+  - video_document
+  - gif
+  - audio
+  - voice
+  - archive
+  - sticker
+  - document
 * Progress download (speed + ETA)
 * Resume otomatis (last_id per channel)
 * Sistem login (OTP + 2FA)
@@ -98,10 +110,26 @@ Lalu pilih:
 ---
 
 ## 🎯 Filter yang tersedia
-all (default)
-photo
-video
-document
+* Advanced media filter:
+ - all
+
+ - photo
+ - photo_document
+
+ - video
+ - video_note
+ - video_document
+
+ - gif
+
+ - audio
+ - voice
+
+ - archive
+
+ - sticker
+
+ - document
 
 ---
 

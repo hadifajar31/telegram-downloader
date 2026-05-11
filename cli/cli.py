@@ -55,7 +55,13 @@ def _build_parser() -> argparse.ArgumentParser:
         "-f",
         choices=sorted(VALID_FILTERS),
         default="all",
-        help="Filter tipe media. Default: all",
+        help=(
+            "Filter media: "
+            "all, photo, photo_document, "
+            "video, video_note, video_document, "
+            "gif, audio, voice, archive, "
+            "sticker, document"
+        ),
     )
 
     parser.add_argument(

@@ -11,7 +11,13 @@ from typing import Callable, Optional, Union
 
 from telethon.sync import TelegramClient
 from telethon import errors
-from telethon.tl.types import DocumentAttributeFilename
+from telethon.tl.types import (
+    DocumentAttributeAnimated,
+    DocumentAttributeAudio,
+    DocumentAttributeFilename,
+    DocumentAttributeSticker,
+    DocumentAttributeVideo,
+)
 
 from config.config import API_ID, API_HASH, PHONE_NUMBER, SESSION_PATH, OUTPUT_DIR
 from core.utils import parse_channel, safe_filename, format_size, format_eta
@@ -19,7 +25,47 @@ from core.utils import parse_channel, safe_filename, format_size, format_eta
 
 # ─── Tipe Filter ──────────────────────────────────────────────────────────────
 
-VALID_FILTERS = {"all", "photo", "video", "document"}
+VALID_FILTERS = {
+    "all",
+    "photo",
+    "photo_document",
+    "video",
+    "video_note",
+    "video_document",
+    "gif",
+    "audio",
+    "voice",
+    "archive",
+    "sticker",
+    "document",
+}
+
+# Ekstensi archive yang dikenali
+ARCHIVE_EXTENSIONS = {".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz"}
+ARCHIVE_MIME_TYPES = {
+    "application/x-rar-compressed",
+    "application/x-7z-compressed",
+    "application/x-bzip2",
+    "application/x-tar",
+    "application/x-rar",
+    "application/gzip",
+    "application/zip",
+}
+
+# Fallback extension per media type
+FALLBACK_EXT = {
+    "photo": "jpg",
+    "photo_document": "jpg",
+    "video": "mp4",
+    "video_note": "mp4",
+    "video_document": "mp4",
+    "gif": "mp4",
+    "audio": "mp3",
+    "voice": "ogg",
+    "sticker": "webp",
+    "archive": "zip",
+    "document": "bin",
+}
 
 
 # ─── Resume ───────────────────────────────────────────────────────────────────
@@ -65,7 +111,7 @@ class DownloadCallbacks:
         on_progress(percent, speed, eta)
             percent : float       → 0.0 - 100.0
             speed   : str         → contoh "1.23 MB/s"
-            eta     : str         → contoh "2m 30d"
+            eta     : str         → contoh "2m 30s"
 
         on_file(current, total, filename)
             current  : int        → nomor file sekarang
@@ -102,15 +148,78 @@ class DownloadCallbacks:
 
 # ─── Helper Internal ──────────────────────────────────────────────────────────
 
+def _is_archive(filename: str, mime: str) -> bool:
+    """Cek apakah file termasuk archive berdasarkan ekstensi atau mime type."""
+    ext = os.path.splitext(filename)[1].lower()
+    return ext in ARCHIVE_EXTENSIONS or mime in ARCHIVE_MIME_TYPES
+
+
 def _get_media_type(message) -> Optional[str]:
-    """Kembalikan tipe media dari message, atau None kalau bukan media."""
-    if message.photo:
+    """
+    Kembalikan tipe media dari message, atau None kalau bukan media.
+
+    Urutan prioritas detection:
+    1. photo
+    2. video_note
+    3. gif
+    4. video
+    5. audio
+    6. voice
+    7. sticker
+    8. photo_document
+    9. video_document
+    10. archive
+    11. document
+    """
+    # 1. Photo (dikirim sebagai foto biasa)
+    if message.photo and not message.document:
         return "photo"
 
     if message.document:
+        attrs = message.document.attributes
         mime = message.document.mime_type or ""
-        if mime.startswith("video/"):
-            return "video"
+
+        # Kumpulkan atribut yang ada
+        attr_types = {type(a) for a in attrs}
+
+        # Cek round video (video_note)
+        for attr in attrs:
+            if isinstance(attr, DocumentAttributeVideo) and attr.round_message:
+                return "video_note"
+
+        # 3. GIF (animated document)
+        if DocumentAttributeAnimated in attr_types:
+            return "gif"
+
+        # 4. Video biasa
+        if DocumentAttributeVideo in attr_types:
+            return "video_document"
+
+        # 5-6. Audio / Voice
+        for attr in attrs:
+            if isinstance(attr, DocumentAttributeAudio):
+                return "voice" if attr.voice else "audio"
+
+        # 7. Sticker
+        if DocumentAttributeSticker in attr_types:
+            return "sticker"
+
+        # 8. Photo as document (gambar dikirim sebagai file)
+        if mime.startswith("image/"):
+            return "photo_document"
+
+        # Ambil filename untuk cek archive
+        filename = ""
+        for attr in attrs:
+            if isinstance(attr, DocumentAttributeFilename):
+                filename = attr.file_name
+                break
+
+        # 10. Archive
+        if _is_archive(filename, mime):
+            return "archive"
+
+        # 11. Fallback document
         return "document"
 
     return None
@@ -125,12 +234,7 @@ def _get_filename(message, media_type: str, msg_id: int) -> str:
                 return safe_filename(attr.file_name)
 
     # Fallback: buat nama dari ID dan tipe
-    ext_map = {
-        "photo": "jpg",
-        "video": "mp4",
-        "document": "bin",
-    }
-    ext = ext_map.get(media_type, "bin")
+    ext = FALLBACK_EXT.get(media_type, "bin")
     return f"media_{msg_id}.{ext}"
 
 
@@ -156,7 +260,7 @@ class Downloader:
         ----------
         config : dict
             channel : str   → channel ID / username
-            filter  : str   → "all" | "photo" | "video" | "document"
+            filter  : str   → salah satu dari VALID_FILTERS
             limit   : int   → jumlah file, None = semua
 
         callbacks : DownloadCallbacks
@@ -239,7 +343,7 @@ class Downloader:
             # Naik sekali di awal loop
             display_count += 1
 
-            # Skip
+            # Skip file yang sudah ada
             if os.path.exists(output_path):
                 self.callbacks.file(display_count, total, f"(SKIP) {filename}")
                 self.callbacks.progress(100.0, "SKIP", "-")
@@ -267,7 +371,7 @@ class Downloader:
             resume_data[channel_key] = message.id
             save_resume(resume_data)
 
-            # Early stop
+            # Early stop kalau limit tercapai
             if self.limit is not None and downloaded_count >= self.limit:
                 break
 
@@ -283,9 +387,8 @@ class Downloader:
 
     def _download_single(self, client: TelegramClient, message, output_path: str):
         """Download satu file dengan progress callback."""
-        start_time = time.time()
         last_bytes = 0
-        last_time = start_time
+        last_time = time.time()
 
         def progress_callback(received: int, total: int):
             nonlocal last_bytes, last_time
