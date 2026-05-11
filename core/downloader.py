@@ -282,6 +282,9 @@ class Downloader:
 
         if not self.channel:
             raise ValueError("Channel tidak boleh kosong.")
+        
+        if self.limit is not None and self.limit <= 0:
+            raise ValueError("Limit harus lebih dari 0 atau None untuk semua.")
 
     def stop(self):
         """Minta downloader berhenti setelah file saat ini selesai."""

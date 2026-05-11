@@ -7,7 +7,7 @@ import argparse
 import sys
 import time
 
-from core.downloader import run_downloader, DownloadCallbacks, VALID_FILTERS
+from core.downloader import Downloader, DownloadCallbacks, VALID_FILTERS
 
 
 # ─── Callbacks untuk CLI ──────────────────────────────────────────────────────
@@ -98,17 +98,23 @@ def main(args=None):
         "limit": parsed.limit,
     }
 
-    limit_display = config["limit"] if config["limit"] is not None else "all"
-
-    print(f"Channel : {config['channel']}")
-    print(f"Filter  : {config['filter']}")
-    print(f"Limit   : {limit_display}")
-    print("Memulai download...\n")
-
     callbacks = _make_cli_callbacks()
 
     try:
-        run_downloader(config, callbacks)
+        downloader = Downloader(config, callbacks)
+
+        limit_display = (
+            config["limit"]
+            if config["limit"] is not None
+            else "all"
+        )
+
+        print(f"Channel : {config['channel']}")
+        print(f"Filter  : {config['filter']}")
+        print(f"Limit   : {limit_display}")
+        print("Memulai download...\n")
+
+        downloader.run()
     except ValueError as e:
         print(f"[ERROR] {e}", file=sys.stderr)
         return
