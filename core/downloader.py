@@ -75,6 +75,18 @@ FALLBACK_EXT = {
     "document": "bin",
 }
 
+# Media yang pakai auto-generated filename
+NATIVE_FILENAME_TYPES = {
+    "photo",
+    "photo_document",
+    "video",
+    "video_note",
+    "video_document",
+    "gif",
+    "voice",
+    "sticker",
+}
+
 
 # ─── Resume ───────────────────────────────────────────────────────────────────
 
@@ -244,13 +256,23 @@ def _get_filename(message, media_type: str, msg_id: int) -> str:
     Generate filename berdasarkan tipe media Telegram.
     """
 
+    # Native-like media → auto filename
+    if media_type in NATIVE_FILENAME_TYPES:
+        ext = FALLBACK_EXT.get(media_type, "bin")
+
+        return generate_native_filename(
+            media_type=media_type,
+            message_id=msg_id,
+            ext=ext,
+        )
+
     # Document media → pakai nama asli
     if message.document:
         for attr in message.document.attributes:
             if isinstance(attr, DocumentAttributeFilename):
                 return generate_document_filename(attr.file_name)
 
-    # Native media → pakai naming internal
+    # Fallback kalau document tidak punya filename atau media type tidak dikenali
     ext = FALLBACK_EXT.get(media_type, "bin")
 
     return generate_native_filename(
