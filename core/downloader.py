@@ -390,7 +390,12 @@ class Downloader:
                 continue
 
             filename = _get_filename(message, media_type, message.id)
-            output_path = build_output_path(OUTPUT_DIR, channel_folder, media_type, filename)
+            output_path = build_output_path(
+                OUTPUT_DIR, 
+                channel_folder, 
+                media_type, filename, 
+                grouped_id=message.grouped_id
+            )
 
             # Naik sekali di awal loop
             display_count += 1

@@ -76,7 +76,7 @@
   - duplicate document:
     - auto rename (_2)
 
-- [ ] Album/grouped_id handling
+- [x] Album/grouped_id handling
   - grouped media detection
   - optional album folder structure
 
@@ -132,6 +132,8 @@
 ✔ Skip existing file
 
 ➡️ NEXT:
-- [ ] Album/grouped_id handling
-  - grouped media detection
-  - optional album folder structure
+* [ ] Rentang ID
+
+* [ ] Rentang tanggal
+
+* [ ] Offset + Limit

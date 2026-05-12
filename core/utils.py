@@ -156,19 +156,30 @@ def build_output_path(
     channel_name: str,
     media_type: str,
     filename: str,
+    grouped_id: int | None = None,
 ) -> str:
     """
     Build path output:
-    base/channel/media_type/filename
+    - normal:
+      base/channel/media_type/filename
+
+    - grouped media:
+      base/channel/media_type/album_<grouped_id>/filename
     """
     channel_folder = safe_filename(channel_name)
     media_folder = safe_filename(media_type.lower())
 
-    folder_path = os.path.join(
+    path_parts = [
         base_dir,
         channel_folder,
         media_folder,
-    )
+    ]
+
+    # Album/grouped media
+    if grouped_id is not None:
+        path_parts.append(f"album_{grouped_id}")
+
+    folder_path = os.path.join(*path_parts)
 
     ensure_folder(folder_path)
 
