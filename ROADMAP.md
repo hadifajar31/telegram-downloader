@@ -26,8 +26,6 @@
 
 * [ ] Compare folder lokal
 
-* [ ] Handle multiple media dalam single message (album/media group)
-
 * [x] Target-based download (limit pintar, skip tidak dihitung)
 
 ---
@@ -70,7 +68,14 @@
   - per channel
   - per filter
 
-- [ ] Penamaan file (belum decided)
+- [ ] Penamaan file
+  - native media:
+    - photo_<message_id>
+    - video_<message_id>
+    - support grouped_id
+  - document media:
+    - keep original filename
+    - fallback anti overwrite
 
 - [ ] Sinkronisasi file
 - [ ] Skip duplikat antar channel
@@ -123,6 +128,12 @@
 ✔ Early stop
 ✔ Skip existing file
 
-➡️ NEXT: 
-- [ ] HaHandle multiple media dalam single message (album/media group)
-- [ ] Penamaan file (belum decided)
+➡️ NEXT:
+- [ ] Penamaan file
+  - native media:
+    - photo_<message_id>
+    - video_<message_id>
+    - support grouped_id
+  - document media:
+    - keep original filename
+    - fallback anti overwrite

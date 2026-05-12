@@ -16,17 +16,18 @@ from telethon.tl.types import (
     DocumentAttributeAudio,
     DocumentAttributeFilename,
     DocumentAttributeSticker,
-    DocumentAttributeVideo,
+    DocumentAttributeVideo
 )
 
 from config.config import API_ID, API_HASH, PHONE_NUMBER, SESSION_PATH, OUTPUT_DIR
 from core.utils import (
     parse_channel, 
-    safe_filename, 
     format_size, 
     format_eta, 
     build_output_path, 
-    get_channel_folder_name
+    get_channel_folder_name,
+    generate_document_filename,
+    generate_native_filename,
 )
 
 
@@ -239,16 +240,24 @@ def _get_media_type(message) -> Optional[str]:
 
 
 def _get_filename(message, media_type: str, msg_id: int) -> str:
-    """Buat filename yang aman dari message."""
-    # Coba ambil nama asli dari atribut dokumen
+    """
+    Generate filename berdasarkan tipe media Telegram.
+    """
+
+    # Document media → pakai nama asli
     if message.document:
         for attr in message.document.attributes:
             if isinstance(attr, DocumentAttributeFilename):
-                return safe_filename(attr.file_name)
+                return generate_document_filename(attr.file_name)
 
-    # Fallback: buat nama dari ID dan tipe
+    # Native media → pakai naming internal
     ext = FALLBACK_EXT.get(media_type, "bin")
-    return f"media_{msg_id}.{ext}"
+
+    return generate_native_filename(
+        media_type=media_type,
+        message_id=msg_id,
+        ext=ext,
+    )
 
 
 def _passes_filter(media_type: Optional[str], filter_type: str) -> bool:
