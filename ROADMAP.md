@@ -26,6 +26,8 @@
 
 * [ ] Compare folder lokal
 
+* [ ] Handle multiple media dalam single message (album/media group)
+
 * [x] Target-based download (limit pintar, skip tidak dihitung)
 
 ---
@@ -64,7 +66,7 @@
     - sticker
     - document
 
-- [ ] Struktur folder:
+- [x] Struktur folder:
   - per channel
   - per filter
 
@@ -98,6 +100,10 @@
 
 * [ ] Logout akun
 * [ ] Optimize save resume (batch, tidak setiap pesan)
+* [ ] Fix main.py --cli argument forwarding
+* [ ] Prevent downloader auto-login prompt
+* [ ] Add __main__ entry for cli.py
+* [ ] Improve CLI UX
 * [x] Rapihin output CLI
 * [x] Tampilkan total asli + total setelah resume
 * [x] Validasi input CLI lebih ketat
@@ -118,8 +124,5 @@
 ✔ Skip existing file
 
 ➡️ NEXT: 
-- [ ] Struktur folder:
-  - per channel
-  - per filter
-
+- [ ] HaHandle multiple media dalam single message (album/media group)
 - [ ] Penamaan file (belum decided)

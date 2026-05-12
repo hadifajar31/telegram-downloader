@@ -20,7 +20,14 @@ from telethon.tl.types import (
 )
 
 from config.config import API_ID, API_HASH, PHONE_NUMBER, SESSION_PATH, OUTPUT_DIR
-from core.utils import parse_channel, safe_filename, format_size, format_eta
+from core.utils import (
+    parse_channel, 
+    safe_filename, 
+    format_size, 
+    format_eta, 
+    build_output_path, 
+    get_channel_folder_name
+)
 
 
 # ─── Tipe Filter ──────────────────────────────────────────────────────────────
@@ -324,6 +331,7 @@ class Downloader:
         # Resolve entity, penting untuk private channel
         channel_ref = int(self.channel) if self.channel.lstrip('-').isdigit() else self.channel
         entity = client.get_entity(channel_ref)
+        channel_folder = get_channel_folder_name(entity)
         total_messages = client.get_messages(entity, limit=1).total
         print(f"Total   : {total_messages} messages")
 
@@ -350,7 +358,7 @@ class Downloader:
                 continue
 
             filename = _get_filename(message, media_type, message.id)
-            output_path = os.path.join(OUTPUT_DIR, filename)
+            output_path = build_output_path(OUTPUT_DIR, channel_folder, media_type, filename)
 
             # Naik sekali di awal loop
             display_count += 1

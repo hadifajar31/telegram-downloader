@@ -125,8 +125,51 @@ def format_eta(seconds: float) -> str:
     days, hrs = divmod(hours, 24)
     return f"{days}h {hrs}j"
 
-# ─── Channel Parsing ──────────────────────────────────────────────────────────
+# ─── Filesystem  ──────────────────────────────────────────────────────────────
 
 def ensure_folder(path: str):
     """Pastikan folder ada."""
     os.makedirs(path, exist_ok=True)
+
+# ─── Path Builder ─────────────────────────────────────────────────────────────
+
+def get_channel_folder_name(entity) -> str:
+    """
+    Ambil nama folder channel yang aman untuk filesystem.
+
+    Prioritas:
+    1. title
+    2. username
+    3. ID
+    """
+    if getattr(entity, "title", None):
+        return safe_filename(entity.title)
+
+    if getattr(entity, "username", None):
+        return safe_filename(entity.username)
+
+    return str(entity.id)
+
+
+def build_output_path(
+    base_dir: str,
+    channel_name: str,
+    media_type: str,
+    filename: str,
+) -> str:
+    """
+    Build path output:
+    base/channel/media_type/filename
+    """
+    channel_folder = safe_filename(channel_name)
+    media_folder = safe_filename(media_type.lower())
+
+    folder_path = os.path.join(
+        base_dir,
+        channel_folder,
+        media_folder,
+    )
+
+    ensure_folder(folder_path)
+
+    return os.path.join(folder_path, filename)
