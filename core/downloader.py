@@ -25,9 +25,10 @@ from core.utils import (
     format_size, 
     format_eta, 
     build_output_path, 
-    get_channel_folder_name,
-    generate_document_filename,
-    generate_native_filename,
+    ensure_unique_filename, 
+    get_channel_folder_name, 
+    generate_document_filename, 
+    generate_native_filename, 
 )
 
 
@@ -394,13 +395,21 @@ class Downloader:
             # Naik sekali di awal loop
             display_count += 1
 
-            # Skip file yang sudah ada
-            if os.path.exists(output_path):
-                self.callbacks.file(display_count, total, f"(SKIP) {filename}")
-                self.callbacks.progress(100.0, "SKIP", "-")
-                resume_data[channel_key] = message.id
-                save_resume(resume_data)
-                continue
+            # Native-like media → skip kalau sudah ada
+            if media_type in NATIVE_FILENAME_TYPES:
+                if os.path.exists(output_path):
+                    self.callbacks.file(display_count, total, f"(SKIP) {filename}")
+                    self.callbacks.progress(100.0, "SKIP", "-")
+
+                    resume_data[channel_key] = message.id
+                    save_resume(resume_data)
+
+                    continue
+
+            # Document-like media → rename kalau sudah ada
+            else:
+                output_path = ensure_unique_filename(output_path)
+                filename = os.path.basename(output_path)
 
             # Download
             self.callbacks.file(display_count, total, filename)

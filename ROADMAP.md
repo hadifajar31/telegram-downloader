@@ -68,14 +68,17 @@
   - per channel
   - per filter
 
-- [ ] Penamaan file
+- [x] Penamaan file
   - native media:
-    - photo_<message_id>
-    - video_<message_id>
-    - support grouped_id
+    - <type>_<message_id>
   - document media:
     - keep original filename
-    - fallback anti overwrite
+  - duplicate document:
+    - auto rename (_2)
+
+- [ ] Album/grouped_id handling
+  - grouped media detection
+  - optional album folder structure
 
 - [ ] Sinkronisasi file
 - [ ] Skip duplikat antar channel
@@ -129,11 +132,6 @@
 ✔ Skip existing file
 
 ➡️ NEXT:
-- [ ] Penamaan file
-  - native media:
-    - photo_<message_id>
-    - video_<message_id>
-    - support grouped_id
-  - document media:
-    - keep original filename
-    - fallback anti overwrite
+- [ ] Album/grouped_id handling
+  - grouped media detection
+  - optional album folder structure
