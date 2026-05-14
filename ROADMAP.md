@@ -89,6 +89,11 @@
 
 * [x] Validasi input (limit, dll)
 * [x] Output lebih clean
+- [ ] Input helper system
+  - validasi angka
+  - validasi pilihan menu
+  - validasi channel
+  - reusable prompt helper
 * [ ] Logging (opsional)
 
 ---
