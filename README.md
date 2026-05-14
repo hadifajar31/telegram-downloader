@@ -1,6 +1,6 @@
 # Teleoder
 
-CLI tool untuk download media dari channel Telegram menggunakan Telethon.
+CLI tool untuk download media dari Telegram channel, group, dan supergroup menggunakan Telethon.
 Mendukung streaming download, smart limit, dan resume otomatis.
 
 ---
@@ -20,7 +20,7 @@ Mendukung streaming download, smart limit, dan resume otomatis.
 ## ✨ Fitur
 
 * CLI + menu interaktif
-* Download media dari channel Telegram
+* Download media dari channel, group, dan supergroup Telegram
 * Advanced media filter:
   - photo
   - photo_document
@@ -47,7 +47,7 @@ Mendukung streaming download, smart limit, dan resume otomatis.
 
 ```bash
 git clone https://github.com/hadifajar31/telegram-downloader
-cd teleoder
+cd telegram-downloader
 pip install -r requirements.txt
 ```
 
@@ -112,26 +112,20 @@ Lalu pilih:
 ---
 
 ## 🎯 Filter yang tersedia
+
 * Advanced media filter:
- - all
-
- - photo
- - photo_document
-
- - video
- - video_note
- - video_document
-
- - gif
-
- - audio
- - voice
-
- - archive
-
- - sticker
-
- - document
+  - all
+  - photo
+  - photo_document
+  - video
+  - video_note
+  - video_document
+  - gif
+  - audio
+  - voice
+  - archive
+  - sticker
+  - document
 
 ---
 
@@ -169,14 +163,24 @@ Resume  : last_id 80
 ---
 
 ## 🚀 Current Focus
-* Range ID download
-* Offset + Limit
-* Folder structure
+
 * GUI (CustomTkinter)
-* Multi account session
+* Topic system
+* Dedup system
+* Compare & sync
 
 ---
 
+## 🧠 Planned Features
+
+> Forum/topic split support masih dalam pengembangan.
+
+* MD5 deduplication
+* Compare & sync
+* Multi-source archive
+* GUI
+
+---
 ## 📄 License
 
 MIT License

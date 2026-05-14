@@ -10,7 +10,9 @@
 
 ---
 
-## 🥈 Phase 2 — Mode Download
+## 🥈 Phase 2 — Mode 
+
+### Mode Download
 
 * [x] Semua
 
@@ -18,19 +20,55 @@
 
 * [x] Rentang ID
 
-* [ ] Rentang tanggal
+* [x] Rentang tanggal
 
 * [x] Offset + Limit
 
 * [ ] Merge 2 channel
 
+### Mode Dedup 
+
+* [ ] Off
+
+* [ ] Fast Skip
+
+* [ ] Smart Skip
+
+* [ ] MD5 Dedup
+
+### Topic System
+
+* [ ] Topic detection
+
+* [ ] Topic mode
+
+* [ ] Auto topic split
+
+* [ ] Folder per topic
+
+### Compare & Sync
+
 * [ ] Compare folder lokal
 
-* [x] Target-based download (limit pintar, skip tidak dihitung)
+* [ ] Sinkronisasi file
+
+* [ ] Multi-source compare
+
+* [ ] Skip duplikat antar channel
+
+### Dedup Engine
+
+* [ ] Hash scanner
+
+* [ ] Hash cache/database
+
+* [ ] Global media index
 
 ---
 
 ## 🥉 Phase 3 — System Improvements
+
+* [x] Target-based download (limit pintar, skip tidak dihitung)
 
 - [x] Skip file yang sudah ada
 - [x] Cleanup import tidak terpakai (MessageMediaPhoto, MessageMediaDocument)
@@ -45,7 +83,6 @@
   - cleanup session lebih rapi
 - [ ] Handle Ctrl+C saat active transfer (Telethon pending task)
 
-- [ ] Skip file duplikat (MD5)
 - [ ] Compare folder (anti re-download)
 
 - [x] Advanced media filter
@@ -80,9 +117,6 @@
   - grouped media detection
   - optional album folder structure
 
-- [ ] Sinkronisasi file
-- [ ] Skip duplikat antar channel
-
 ---
 
 ## 🧩 Phase 4 — UX & Polish
@@ -105,6 +139,11 @@
 * [ ] Progress bar
 * [ ] Tombol stop
 * [ ] Pilih mode download
+* [ ] Filter selector
+* [ ] Dedup selector
+* [ ] Topic selector
+* [ ] Log panel
+* [ ] Download history
 
 ---
 
@@ -138,4 +177,10 @@
 ✔ Skip existing file
 
 ➡️ NEXT:
-* [ ] Rentang tanggal
+- [ ] Input helper system
+  - validasi angka
+  - validasi pilihan menu
+  - validasi channel
+  - reusable prompt helper
+
+* [ ] Optimize save resume (batch, tidak setiap pesan)

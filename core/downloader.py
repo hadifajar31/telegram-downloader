@@ -8,6 +8,7 @@ import json
 import time
 import threading
 from typing import Callable, Optional, Union
+from datetime import datetime
 
 from telethon.sync import TelegramClient
 from telethon import errors
@@ -317,6 +318,8 @@ class Downloader:
         self.limit = config.get("limit", None)
         self.min_id = config.get("min_id", 0)
         self.max_id = config.get("max_id", 0)
+        self.from_date = config.get("from_date")
+        self.to_date = config.get("to_date")
         self.callbacks = callbacks
         self._stop_event = threading.Event()
 
@@ -337,6 +340,31 @@ class Downloader:
 
         if self.max_id and self.max_id <= self.min_id:
             raise ValueError("max_id harus lebih besar dari min_id.")
+        
+        try:
+            if self.from_date:
+                self.from_date = datetime.strptime(
+                    self.from_date,
+                    "%Y-%m-%d"
+                )
+
+            if self.to_date:
+                self.to_date = datetime.strptime(
+                    self.to_date,
+                    "%Y-%m-%d"
+                )
+
+        except ValueError:
+            raise ValueError("Format tanggal harus YYYY-MM-DD.")
+
+        if (
+            self.from_date
+            and self.to_date
+            and self.to_date < self.from_date
+        ):
+            raise ValueError(
+                "to_date harus lebih besar dari from_date."
+            )
 
     def stop(self):
         """Minta downloader berhenti setelah file saat ini selesai."""
@@ -392,7 +420,15 @@ class Downloader:
         channel_key = str(self.channel)
         last_id = resume_data.get(channel_key, 0)
 
-        if last_id > 0:
+        # Explicit range mode → ignore resume
+        is_explicit_range = (
+            self.min_id > 0
+            or self.max_id > 0
+            or self.from_date
+            or self.to_date
+        )
+
+        if not is_explicit_range and last_id > 0:
             print(f"Resume  : last_id {last_id}")
 
         # Total untuk callback: pakai limit kalau ada, "?" kalau tidak
@@ -401,8 +437,7 @@ class Downloader:
         downloaded_count = 0  # untuk logic limit
         display_count = 0     # untuk UI (nomor file)
 
-        # Kalau pakai explicit range → ignore resume
-        if self.min_id > 0 or self.max_id > 0:
+        if is_explicit_range:
             effective_min_id = self.min_id
         else:
             effective_min_id = max(last_id, self.min_id)
@@ -415,8 +450,17 @@ class Downloader:
         ):
             if self._stop_event.is_set():
                 return
+            
+            message_date = message.date.replace(tzinfo=None)
 
+            if self.from_date and message_date < self.from_date:
+                continue
+
+            if self.to_date and message_date > self.to_date:
+                continue
+            
             media_type = _get_media_type(message)
+
             if not _passes_filter(media_type, self.filter):
                 continue
 
@@ -437,8 +481,9 @@ class Downloader:
                     self.callbacks.file(display_count, total, f"(SKIP) {filename}")
                     self.callbacks.progress(100.0, "SKIP", "-")
 
-                    resume_data[channel_key] = message.id
-                    save_resume(resume_data)
+                    if not is_explicit_range:
+                        resume_data[channel_key] = message.id
+                        save_resume(resume_data)
 
                     continue
 
@@ -467,8 +512,9 @@ class Downloader:
                     break
 
             if download_success:
-                resume_data[channel_key] = message.id
-                save_resume(resume_data)
+                if not is_explicit_range:
+                    resume_data[channel_key] = message.id
+                    save_resume(resume_data)
 
             # Early stop kalau limit tercapai
             if self.limit is not None and downloaded_count >= self.limit:

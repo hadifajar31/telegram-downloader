@@ -89,6 +89,20 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Batas maksimal message ID",
     )
 
+    parser.add_argument(
+    "--from-date",
+    type=str,
+    default=None,
+    help="Tanggal mulai download (YYYY-MM-DD)",
+    )
+
+    parser.add_argument(
+        "--to-date",
+        type=str,
+        default=None,
+        help="Tanggal akhir download (YYYY-MM-DD)",
+    )
+
     return parser
 
 
@@ -112,6 +126,8 @@ def main(args=None):
         "limit": parsed.limit,
         "min_id": parsed.min_id,
         "max_id": parsed.max_id,
+        "from_date": parsed.from_date,
+        "to_date": parsed.to_date,
     }
 
     callbacks = _make_cli_callbacks()
@@ -130,6 +146,8 @@ def main(args=None):
         print(f"Limit   : {limit_display}")
         print(f"Min ID  : {config['min_id'] or '-'}")
         print(f"Max ID  : {config['max_id'] or '-'}")
+        print(f"From    : {config['from_date'] or '-'}")
+        print(f"To      : {config['to_date'] or '-'}")
         print("Memulai download...")
 
         downloader.run()
