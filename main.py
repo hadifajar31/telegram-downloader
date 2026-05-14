@@ -1,6 +1,8 @@
 import argparse
 from cli.cli import main as cli_main
 from core.auth import login
+from core.input_helper import prompt_choice, prompt_int, prompt_date, prompt_channel
+
 
 def run_menu():
     while True:
@@ -10,13 +12,16 @@ def run_menu():
         print("3. GUI")
         print("0. Keluar")
 
-        choice = input("Masukkan pilihan (1/2/3/0): ").strip()
+        choice = prompt_choice(
+            "Masukkan pilihan (1/2/3/0): ",
+            choices={"1": "login", "2": "cli", "3": "gui", "0": "exit"},
+        )
 
-        if choice == "1":
+        if choice == "login":
             login()
 
-        elif choice == "2":
-            channel = input("Masukkan channel (@username / link / ID): ").strip()
+        elif choice == "cli":
+            channel = prompt_channel("Masukkan channel (@username / link / ID): ")
 
             print("\nPilih filter:")
             print("1. All")
@@ -38,8 +43,6 @@ def run_menu():
             print("11. Sticker")
 
             print("12. Document")
-
-            filter_choice = input("Masukkan pilihan: ").strip()
 
             filter_map = {
                 "1": "all",
@@ -63,61 +66,66 @@ def run_menu():
                 "12": "document",
             }
 
-            filter_type = filter_map.get(filter_choice, "all")
+            filter_type = prompt_choice("Masukkan pilihan: ", choices=filter_map, default="1")
 
-            limit_input = input("Masukkan limit file (kosongkan untuk semua): ").strip()
+            limit = prompt_int(
+                "Masukkan limit file (kosongkan untuk semua): ",
+                allow_empty=True,
+                min_value=1,
+            )
 
-            min_id_input = input("Masukkan min ID (Kosongkan untuk 0): ").strip()
-            max_id_input = input("Masukkan max ID (Kosongkan untuk 0): ").strip()
+            min_id = prompt_int(
+                "Masukkan min ID (kosongkan untuk 0): ",
+                allow_empty=True,
+                default=0,
+            )
+
+            max_id = prompt_int(
+                "Masukkan max ID (kosongkan untuk 0): ",
+                allow_empty=True,
+                default=0,
+            )
+
+            if max_id and max_id <= min_id:
+                print("[ERROR] max_id harus lebih besar dari min_id.")
+                print("\n")
+                continue
+
+            from_date = prompt_date("Masukkan from date (kosongkan untuk skip): ")
+            to_date = prompt_date("Masukkan to date (kosongkan untuk skip): ")
 
             args = [channel, "--filter", filter_type]
 
-            if limit_input.isdigit() and int(limit_input) > 0:
-                args += ["--limit", limit_input]
+            if limit:
+                args += ["--limit", str(limit)]
 
-            try:
-                min_id_value = int(min_id_input) if min_id_input else 0
-                max_id_value = int(max_id_input) if max_id_input else 0
+            if min_id:
+                args += ["--min-id", str(min_id)]
 
-                if min_id_value < 0 or max_id_value < 0:
-                    print("[ERROR] ID tidak boleh negatif.")
-                    continue
+            if max_id:
+                args += ["--max-id", str(max_id)]
 
-                if max_id_value and max_id_value <= min_id_value:
-                    print("[ERROR] max_id harus lebih besar dari min_id.")
-                    continue
+            if from_date:
+                args += ["--from-date", from_date]
 
-                if min_id_value > 0:
-                    args += ["--min-id", str(min_id_value)]
-
-                if max_id_value > 0:
-                    args += ["--max-id", str(max_id_value)]
-
-            except ValueError:
-                print("[ERROR] min_id/max_id harus berupa angka.")
-                continue
-
-            except ValueError:
-                print("[ERROR] offset harus beraupa angka.")
-                continue
+            if to_date:
+                args += ["--to-date", to_date]
 
             cli_main(args)
 
             print("\nKembali ke menu...\n")
 
-        elif choice == "3":
+        elif choice == "gui":
             print("GUI belum tersedia. Jalankan dengan --cli untuk mode terminal.")
             print("Pilih Mode 2 atau Jalankan Skrip di Bawah")
             print("Contoh: python main.py --cli @channelname --filter video")
 
-        elif choice == "0":
+        elif choice == "exit":
             print("Keluar...\n")
             break
 
-        else:
-            print("Pilihan tidak valid.\n")
-
         print("\n")
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -140,7 +148,7 @@ def main():
         print("GUI belum tersedia. Jalankan dengan --cli untuk mode terminal.")
         return
 
-    # 🔥 kalau gak pakai flag → masuk menu
+    # kalau gak pakai flag → masuk menu
     run_menu()
 
 
