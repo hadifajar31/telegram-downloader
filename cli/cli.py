@@ -75,6 +75,14 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Jumlah file yang didownload. Default: semua",
     )
 
+    parser.add_argument(
+        "--offset",
+        "-o",
+        type=int,
+        default=0,
+        help="Mulai download setelah message ID tertentu",
+    )
+
     return parser
 
 
@@ -96,6 +104,7 @@ def main(args=None):
         "channel": parsed.channel,
         "filter": parsed.filter,
         "limit": parsed.limit,
+        "offset": parsed.offset,
     }
 
     callbacks = _make_cli_callbacks()
@@ -112,6 +121,7 @@ def main(args=None):
         print(f"Channel : {config['channel']}")
         print(f"Filter  : {config['filter']}")
         print(f"Limit   : {limit_display}")
+        print(f"Offset  : {config['offset']}")
         print("Memulai download...")
 
         downloader.run()

@@ -20,7 +20,7 @@
 
 * [ ] Rentang tanggal
 
-* [ ] Offset + Limit
+* [x] Offset + Limit
 
 * [ ] Merge 2 channel
 
@@ -135,5 +135,3 @@
 * [ ] Rentang ID
 
 * [ ] Rentang tanggal
-
-* [ ] Offset + Limit
