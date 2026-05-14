@@ -67,7 +67,8 @@ def run_menu():
 
             limit_input = input("Masukkan limit file (kosongkan untuk semua): ").strip()
 
-            offset_input = input("Masukkan offset ID (Kosongkan untuk 0): ").strip()
+            min_id_input = input("Masukkan min ID (Kosongkan untuk 0): ").strip()
+            max_id_input = input("Masukkan max ID (Kosongkan untuk 0): ").strip()
 
             args = [channel, "--filter", filter_type]
 
@@ -75,13 +76,26 @@ def run_menu():
                 args += ["--limit", limit_input]
 
             try:
-                offset_value = int(offset_input)
+                min_id_value = int(min_id_input) if min_id_input else 0
+                max_id_value = int(max_id_input) if max_id_input else 0
 
-                if offset_value >= 0:
-                    args += ["--offset", str(offset_value)]
-                else:
-                    print("[ERROR] offset tidak boleh negatif.")
+                if min_id_value < 0 or max_id_value < 0:
+                    print("[ERROR] ID tidak boleh negatif.")
                     continue
+
+                if max_id_value and max_id_value <= min_id_value:
+                    print("[ERROR] max_id harus lebih besar dari min_id.")
+                    continue
+
+                if min_id_value > 0:
+                    args += ["--min-id", str(min_id_value)]
+
+                if max_id_value > 0:
+                    args += ["--max-id", str(max_id_value)]
+
+            except ValueError:
+                print("[ERROR] min_id/max_id harus berupa angka.")
+                continue
 
             except ValueError:
                 print("[ERROR] offset harus beraupa angka.")

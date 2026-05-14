@@ -315,7 +315,8 @@ class Downloader:
         self.channel = parse_channel(raw_channel)
         self.filter = config.get("filter", "all")
         self.limit = config.get("limit", None)
-        self.offset = config.get("offset", 0)
+        self.min_id = config.get("min_id", 0)
+        self.max_id = config.get("max_id", 0)
         self.callbacks = callbacks
         self._stop_event = threading.Event()
 
@@ -328,8 +329,14 @@ class Downloader:
         if self.limit is not None and self.limit <= 0:
             raise ValueError("Limit harus lebih dari 0 atau None untuk semua.")
         
-        if self.offset < 0:
-            raise ValueError("Offset tidak boleh negatif.")
+        if self.min_id < 0:
+            raise ValueError("min_id tidak boleh negatif.")
+
+        if self.max_id < 0:
+            raise ValueError("max_id tidak boleh negatif.")
+
+        if self.max_id and self.max_id <= self.min_id:
+            raise ValueError("max_id harus lebih besar dari min_id.")
 
     def stop(self):
         """Minta downloader berhenti setelah file saat ini selesai."""
@@ -394,9 +401,18 @@ class Downloader:
         downloaded_count = 0  # untuk logic limit
         display_count = 0     # untuk UI (nomor file)
 
-        effective_min_id = max(last_id, self.offset)
+        # Kalau pakai explicit range → ignore resume
+        if self.min_id > 0 or self.max_id > 0:
+            effective_min_id = self.min_id
+        else:
+            effective_min_id = max(last_id, self.min_id)
         
-        for message in client.iter_messages(entity, min_id=effective_min_id, reverse=True):
+        for message in client.iter_messages(
+            entity, 
+            min_id=effective_min_id, 
+            max_id=self.max_id if self.max_id > 0 else None,
+            reverse=True
+        ):
             if self._stop_event.is_set():
                 return
 

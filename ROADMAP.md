@@ -16,7 +16,7 @@
 
 * [x] Sebagian (Limit)
 
-* [ ] Rentang ID
+* [x] Rentang ID
 
 * [ ] Rentang tanggal
 
@@ -94,6 +94,7 @@
   - validasi pilihan menu
   - validasi channel
   - reusable prompt helper
+* [ ] Better progress output for very fast downloads
 * [ ] Logging (opsional)
 
 ---
@@ -137,6 +138,4 @@
 ✔ Skip existing file
 
 ➡️ NEXT:
-* [ ] Rentang ID
-
 * [ ] Rentang tanggal
