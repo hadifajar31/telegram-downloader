@@ -297,10 +297,12 @@ class Downloader:
         self._stop_event.clear()
         os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+        client = None
+
         try:
-            with TelegramClient(SESSION_PATH, API_ID, API_HASH) as client:
-                client.start(phone=PHONE_NUMBER)
-                self._download_all(client)
+            client = TelegramClient(SESSION_PATH, API_ID, API_HASH)
+            client.start(phone=PHONE_NUMBER)
+            self._download_all(client)
 
         except errors.FloodWaitError as e:
             self.callbacks.error(f"Flood wait: harus tunggu {e.seconds} detik.")
@@ -312,6 +314,13 @@ class Downloader:
             self.callbacks.error(f"Koneksi gagal: {e}")
         except Exception as e:
             self.callbacks.error(f"Error tidak terduga: {e}")
+
+        finally:
+            if client:
+                try:
+                    client.disconnect()
+                except Exception as e:
+                    self.callbacks.error(f"Error saat disconnect: {e}")
 
     def run_in_thread(self) -> threading.Thread:
         """Jalankan download di background thread. Kembalikan thread-nya."""
