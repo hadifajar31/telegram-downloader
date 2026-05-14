@@ -16,11 +16,20 @@ from telethon.tl.types import (
     DocumentAttributeAudio,
     DocumentAttributeFilename,
     DocumentAttributeSticker,
-    DocumentAttributeVideo,
+    DocumentAttributeVideo
 )
 
 from config.config import API_ID, API_HASH, PHONE_NUMBER, SESSION_PATH, OUTPUT_DIR
-from core.utils import parse_channel, safe_filename, format_size, format_eta
+from core.utils import (
+    parse_channel, 
+    format_size, 
+    format_eta, 
+    build_output_path, 
+    ensure_unique_filename, 
+    get_channel_folder_name, 
+    generate_document_filename, 
+    generate_native_filename, 
+)
 
 
 # ─── Tipe Filter ──────────────────────────────────────────────────────────────
@@ -65,6 +74,18 @@ FALLBACK_EXT = {
     "sticker": "webp",
     "archive": "zip",
     "document": "bin",
+}
+
+# Media yang pakai auto-generated filename
+NATIVE_FILENAME_TYPES = {
+    "photo",
+    "photo_document",
+    "video",
+    "video_note",
+    "video_document",
+    "gif",
+    "voice",
+    "sticker",
 }
 
 
@@ -232,16 +253,34 @@ def _get_media_type(message) -> Optional[str]:
 
 
 def _get_filename(message, media_type: str, msg_id: int) -> str:
-    """Buat filename yang aman dari message."""
-    # Coba ambil nama asli dari atribut dokumen
+    """
+    Generate filename berdasarkan tipe media Telegram.
+    """
+
+    # Native-like media → auto filename
+    if media_type in NATIVE_FILENAME_TYPES:
+        ext = FALLBACK_EXT.get(media_type, "bin")
+
+        return generate_native_filename(
+            media_type=media_type,
+            message_id=msg_id,
+            ext=ext,
+        )
+
+    # Document media → pakai nama asli
     if message.document:
         for attr in message.document.attributes:
             if isinstance(attr, DocumentAttributeFilename):
-                return safe_filename(attr.file_name)
+                return generate_document_filename(attr.file_name)
 
-    # Fallback: buat nama dari ID dan tipe
+    # Fallback kalau document tidak punya filename atau media type tidak dikenali
     ext = FALLBACK_EXT.get(media_type, "bin")
-    return f"media_{msg_id}.{ext}"
+
+    return generate_native_filename(
+        media_type=media_type,
+        message_id=msg_id,
+        ext=ext,
+    )
 
 
 def _passes_filter(media_type: Optional[str], filter_type: str) -> bool:
@@ -276,6 +315,7 @@ class Downloader:
         self.channel = parse_channel(raw_channel)
         self.filter = config.get("filter", "all")
         self.limit = config.get("limit", None)
+        self.offset = config.get("offset", 0)
         self.callbacks = callbacks
         self._stop_event = threading.Event()
 
@@ -287,6 +327,9 @@ class Downloader:
         
         if self.limit is not None and self.limit <= 0:
             raise ValueError("Limit harus lebih dari 0 atau None untuk semua.")
+        
+        if self.offset < 0:
+            raise ValueError("Offset tidak boleh negatif.")
 
     def stop(self):
         """Minta downloader berhenti setelah file saat ini selesai."""
@@ -333,6 +376,7 @@ class Downloader:
         # Resolve entity, penting untuk private channel
         channel_ref = int(self.channel) if self.channel.lstrip('-').isdigit() else self.channel
         entity = client.get_entity(channel_ref)
+        channel_folder = get_channel_folder_name(entity)
         total_messages = client.get_messages(entity, limit=1).total
         print(f"Total   : {total_messages} messages")
 
@@ -350,7 +394,9 @@ class Downloader:
         downloaded_count = 0  # untuk logic limit
         display_count = 0     # untuk UI (nomor file)
 
-        for message in client.iter_messages(entity, min_id=last_id, reverse=True):
+        effective_min_id = max(last_id, self.offset)
+        
+        for message in client.iter_messages(entity, min_id=effective_min_id, reverse=True):
             if self._stop_event.is_set():
                 return
 
@@ -359,18 +405,31 @@ class Downloader:
                 continue
 
             filename = _get_filename(message, media_type, message.id)
-            output_path = os.path.join(OUTPUT_DIR, filename)
+            output_path = build_output_path(
+                OUTPUT_DIR, 
+                channel_folder, 
+                media_type, filename, 
+                grouped_id=message.grouped_id
+            )
 
             # Naik sekali di awal loop
             display_count += 1
 
-            # Skip file yang sudah ada
-            if os.path.exists(output_path):
-                self.callbacks.file(display_count, total, f"(SKIP) {filename}")
-                self.callbacks.progress(100.0, "SKIP", "-")
-                resume_data[channel_key] = message.id
-                save_resume(resume_data)
-                continue
+            # Native-like media → skip kalau sudah ada
+            if media_type in NATIVE_FILENAME_TYPES:
+                if os.path.exists(output_path):
+                    self.callbacks.file(display_count, total, f"(SKIP) {filename}")
+                    self.callbacks.progress(100.0, "SKIP", "-")
+
+                    resume_data[channel_key] = message.id
+                    save_resume(resume_data)
+
+                    continue
+
+            # Document-like media → rename kalau sudah ada
+            else:
+                output_path = ensure_unique_filename(output_path)
+                filename = os.path.basename(output_path)
 
             # Download
             self.callbacks.file(display_count, total, filename)

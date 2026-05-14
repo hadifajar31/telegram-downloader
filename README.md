@@ -13,6 +13,7 @@ Mendukung streaming download, smart limit, dan resume otomatis.
 * Handle FloodWait otomatis (delay + retry)
 * Advanced media filter berdasarkan cara kirim Telegram
 * CLI output lebih clean + informative
+* Struktur folder otomatis per channel + media type
 
 ---
 
@@ -91,7 +92,7 @@ Masukkan OTP dan password (jika ada 2FA).
 ### Mode CLI
 
 ```bash
-python main.py --cli @channelname --filter photo --limit 5
+python main.py --cli -- @channelname --filter photo --limit 5
 ```
 
 ### Mode Menu
@@ -139,7 +140,15 @@ Lalu pilih:
 File akan disimpan di:
 
 ```
-~/Downloads/Tele
+~/Downloads/Tele/<Channel>/<Filter>/
+```
+
+Contoh:
+```
+Tele/
+└── CH Tes publik/
+    ├── photo/
+    └── photo_document/
 ```
 
 ## 📊 Contoh Output

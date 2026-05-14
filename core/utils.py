@@ -125,8 +125,113 @@ def format_eta(seconds: float) -> str:
     days, hrs = divmod(hours, 24)
     return f"{days}h {hrs}j"
 
-# ─── Channel Parsing ──────────────────────────────────────────────────────────
+# ─── Filesystem  ──────────────────────────────────────────────────────────────
 
 def ensure_folder(path: str):
     """Pastikan folder ada."""
     os.makedirs(path, exist_ok=True)
+
+# ─── Path Builder ─────────────────────────────────────────────────────────────
+
+def get_channel_folder_name(entity) -> str:
+    """
+    Ambil nama folder channel yang aman untuk filesystem.
+
+    Prioritas:
+    1. title
+    2. username
+    3. ID
+    """
+    if getattr(entity, "title", None):
+        return safe_filename(entity.title)
+
+    if getattr(entity, "username", None):
+        return safe_filename(entity.username)
+
+    return str(entity.id)
+
+
+def build_output_path(
+    base_dir: str,
+    channel_name: str,
+    media_type: str,
+    filename: str,
+    grouped_id: int | None = None,
+) -> str:
+    """
+    Build path output:
+    - normal:
+      base/channel/media_type/filename
+
+    - grouped media:
+      base/channel/media_type/album_<grouped_id>/filename
+    """
+    channel_folder = safe_filename(channel_name)
+    media_folder = safe_filename(media_type.lower())
+
+    path_parts = [
+        base_dir,
+        channel_folder,
+        media_folder,
+    ]
+
+    # Album/grouped media
+    if grouped_id is not None:
+        path_parts.append(f"album_{grouped_id}")
+
+    folder_path = os.path.join(*path_parts)
+
+    ensure_folder(folder_path)
+
+    return os.path.join(folder_path, filename)
+
+# ─── Filename Builder ─────────────────────────────────────────────────────────
+
+def generate_native_filename(
+    media_type: str,
+    message_id: int,
+    ext: str,
+) -> str:
+    """
+    Generate filename untuk native Telegram media.
+
+    Contoh:
+    - photo_123.jpg
+    - video_456.mp4
+    """
+    media_type = safe_filename(media_type.lower())
+    ext = ext.lower().lstrip(".")
+
+    return f"{media_type}_{message_id}.{ext}"
+
+
+def generate_document_filename(filename: str) -> str:
+    """
+    Bersihkan filename document dari Telegram.
+    """
+    return safe_filename(filename)
+
+
+def ensure_unique_filename(path: str) -> str:
+    """
+    Kalau file sudah ada:
+    file.pdf
+    → file_2.pdf
+    → file_3.pdf
+    """
+    if not os.path.exists(path):
+        return path
+
+    folder, filename = os.path.split(path)
+    name, ext = os.path.splitext(filename)
+
+    counter = 2
+
+    while True:
+        new_filename = f"{name}_{counter}{ext}"
+        new_path = os.path.join(folder, new_filename)
+
+        if not os.path.exists(new_path):
+            return new_path
+
+        counter += 1

@@ -20,7 +20,7 @@
 
 * [ ] Rentang tanggal
 
-* [ ] Offset + Limit
+* [x] Offset + Limit
 
 * [ ] Merge 2 channel
 
@@ -64,11 +64,21 @@
     - sticker
     - document
 
-- [ ] Struktur folder:
+- [x] Struktur folder:
   - per channel
   - per filter
 
-- [ ] Penamaan file (belum decided)
+- [x] Penamaan file
+  - native media:
+    - <type>_<message_id>
+  - document media:
+    - keep original filename
+  - duplicate document:
+    - auto rename (_2)
+
+- [x] Album/grouped_id handling
+  - grouped media detection
+  - optional album folder structure
 
 - [ ] Sinkronisasi file
 - [ ] Skip duplikat antar channel
@@ -79,6 +89,11 @@
 
 * [x] Validasi input (limit, dll)
 * [x] Output lebih clean
+- [ ] Input helper system
+  - validasi angka
+  - validasi pilihan menu
+  - validasi channel
+  - reusable prompt helper
 * [ ] Logging (opsional)
 
 ---
@@ -98,6 +113,10 @@
 
 * [ ] Logout akun
 * [ ] Optimize save resume (batch, tidak setiap pesan)
+* [ ] Fix main.py --cli argument forwarding
+* [ ] Prevent downloader auto-login prompt
+* [ ] Add __main__ entry for cli.py
+* [ ] Improve CLI UX
 * [x] Rapihin output CLI
 * [x] Tampilkan total asli + total setelah resume
 * [x] Validasi input CLI lebih ketat
@@ -117,9 +136,7 @@
 ✔ Early stop
 ✔ Skip existing file
 
-➡️ NEXT: 
-- [ ] Struktur folder:
-  - per channel
-  - per filter
+➡️ NEXT:
+* [ ] Rentang ID
 
-- [ ] Penamaan file (belum decided)
+* [ ] Rentang tanggal

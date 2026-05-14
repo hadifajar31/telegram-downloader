@@ -67,9 +67,25 @@ def run_menu():
 
             limit_input = input("Masukkan limit file (kosongkan untuk semua): ").strip()
 
+            offset_input = input("Masukkan offset ID (Kosongkan untuk 0): ").strip()
+
             args = [channel, "--filter", filter_type]
+
             if limit_input.isdigit() and int(limit_input) > 0:
                 args += ["--limit", limit_input]
+
+            try:
+                offset_value = int(offset_input)
+
+                if offset_value >= 0:
+                    args += ["--offset", str(offset_value)]
+                else:
+                    print("[ERROR] offset tidak boleh negatif.")
+                    continue
+
+            except ValueError:
+                print("[ERROR] offset harus beraupa angka.")
+                continue
 
             cli_main(args)
 
