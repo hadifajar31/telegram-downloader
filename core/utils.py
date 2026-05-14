@@ -102,7 +102,7 @@ def format_size(size_bytes: int) -> str:
 def format_eta(seconds: float) -> str:
     """
     Konversi detik ke string ETA yang mudah dibaca.
-    Contoh: 3661 → "1j 1m 1d"
+    Contoh: 3661 → "1j 1m 1s"
     """
     if seconds < 0 or seconds != seconds:  # negatif atau NaN
         return "--:--"
@@ -115,7 +115,7 @@ def format_eta(seconds: float) -> str:
     minutes, secs = divmod(seconds, 60)
 
     if minutes < 60:
-        return f"{minutes}m {secs}d"
+        return f"{minutes}m {secs}s"
 
     hours, mins = divmod(minutes, 60)
 
@@ -123,7 +123,7 @@ def format_eta(seconds: float) -> str:
         return f"{hours}j {mins}m"
 
     days, hrs = divmod(hours, 24)
-    return f"{days}h {hrs}j"
+    return f"{days}d {hrs}j"
 
 # ─── Filesystem  ──────────────────────────────────────────────────────────────
 

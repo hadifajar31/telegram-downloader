@@ -88,7 +88,7 @@ def run_menu():
 
             if max_id and max_id <= min_id:
                 print("[ERROR] max_id harus lebih besar dari min_id.")
-                print("\n")
+                print()
                 continue
 
             from_date = prompt_date("Masukkan from date (kosongkan untuk skip): ")
@@ -96,7 +96,7 @@ def run_menu():
 
             args = [channel, "--filter", filter_type]
 
-            if limit:
+            if limit is not None:
                 args += ["--limit", str(limit)]
 
             if min_id:
@@ -124,7 +124,7 @@ def run_menu():
             print("Keluar...\n")
             break
 
-        print("\n")
+        print()
 
 
 def main():

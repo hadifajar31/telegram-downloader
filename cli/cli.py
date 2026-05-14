@@ -90,10 +90,10 @@ def _build_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
-    "--from-date",
-    type=str,
-    default=None,
-    help="Tanggal mulai download (YYYY-MM-DD)",
+        "--from-date",
+        type=str,
+        default=None,
+        help="Tanggal mulai download (YYYY-MM-DD)",
     )
 
     parser.add_argument(

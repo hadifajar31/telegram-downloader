@@ -155,7 +155,7 @@ Total   : 120 messages
 Resume  : last_id 80
 
 [1/?] image.jpg
-  Progress: 100.0%  |  1.20 MB/s  |  ETA: 0d
+  Progress: 100.0%  |  1.20 MB/s  |  ETA: 0s
 
 ✔ Download selesai (5/5 file berhasil)
 ```

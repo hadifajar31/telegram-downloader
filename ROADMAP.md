@@ -123,11 +123,11 @@
 
 * [x] Validasi input (limit, dll)
 * [x] Output lebih clean
-- [ ] Input helper system
-  - validasi angka
-  - validasi pilihan menu
-  - validasi channel
-  - reusable prompt helper
+- [x] Input helper system
+  - [x] validasi angka
+  - [x] validasi pilihan menu
+  - [x] validasi channel
+  - [x] reusable prompt helper
 * [ ] Better progress output for very fast downloads
 * [ ] Logging (opsional)
 
@@ -177,10 +177,4 @@
 ✔ Skip existing file
 
 ➡️ NEXT:
-- [ ] Input helper system
-  - validasi angka
-  - validasi pilihan menu
-  - validasi channel
-  - reusable prompt helper
-
 * [ ] Optimize save resume (batch, tidak setiap pesan)
