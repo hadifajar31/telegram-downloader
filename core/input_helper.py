@@ -26,7 +26,10 @@ def prompt_choice(prompt: str, choices: dict, default: str = None) -> str:
         raw = input(prompt).strip()
 
         if not raw and default is not None:
-            return choices[default]
+            if default in choices:
+                return choices[default]
+            print("[ERROR] Pilihan tidak valid.")
+            continue
 
         if raw in choices:
             return choices[raw]
@@ -53,7 +56,8 @@ def prompt_int(
 
     Returns
     -------
-    int | None → None kalau kosong dan allow_empty=True
+    int | None → kalau kosong dan allow_empty=True, return nilai `default`
+                (bisa None, 0, atau value lain tergantung default yang di-set)
     """
     while True:
         raw = input(prompt).strip()

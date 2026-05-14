@@ -110,7 +110,7 @@ def format_eta(seconds: float) -> str:
     seconds = int(seconds)
 
     if seconds < 60:
-        return f"{seconds}d"
+        return f"{seconds}s"
 
     minutes, secs = divmod(seconds, 60)
 
