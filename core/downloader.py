@@ -22,6 +22,7 @@ from telethon.tl.types import (
 )
 
 from config.config import API_ID, API_HASH, PHONE_NUMBER, SESSION_PATH, OUTPUT_DIR
+from core.compare import CompareIndex
 from core.utils import (
     parse_channel, 
     format_size, 
@@ -374,6 +375,8 @@ class Downloader:
 
     def run(self):
         """Jalankan proses download secara synchronous."""
+        # Fix: pastikan event loop baru di thread non-main
+        # Tanpa ini, Telethon bisa raise "no current event loop" di background thread
         asyncio.set_event_loop(asyncio.new_event_loop())
         
         self._stop_event.clear()
@@ -416,6 +419,12 @@ class Downloader:
         channel_ref = int(self.channel) if self.channel.lstrip('-').isdigit() else self.channel
         entity = client.get_entity(channel_ref)
         channel_folder = get_channel_folder_name(entity)
+
+        # Build compare index untuk channel ini
+        channel_base = os.path.join(OUTPUT_DIR, channel_folder)
+        compare_index = CompareIndex(channel_base)
+        compare_index.build()
+
         total_messages = client.get_messages(entity, limit=1).total
         print(f"Total   : {total_messages} messages")
 
@@ -484,15 +493,12 @@ class Downloader:
 
             # Native-like media → skip kalau sudah ada
             if media_type in NATIVE_FILENAME_TYPES:
-                if os.path.exists(output_path):
+                if compare_index.exists(output_path):
                     self.callbacks.file(display_count, total, f"(SKIP) {filename}")
                     self.callbacks.progress(100.0, "SKIP", "-")
 
                     if not is_explicit_range:
                         resume_data[channel_key] = message.id
-                        _resume_save_counter += 1
-                        if _resume_save_counter % SAVE_RESUME_EVERY == 0:
-                            save_resume(resume_data)
 
                     continue
 
@@ -511,6 +517,7 @@ class Downloader:
                     self._download_single(client, message, output_path)
                     downloaded_count += 1
                     download_success = True
+                    compare_index.add(output_path)
                     break
                 except errors.FloodWaitError as e:
                     wait_time = e.seconds
