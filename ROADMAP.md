@@ -48,7 +48,7 @@
 
 ### Compare & Sync
 
-* [ ] Compare folder lokal
+* [x] Compare folder lokal
 
 * [ ] Sinkronisasi file
 
@@ -83,7 +83,9 @@
   - cleanup session lebih rapi
 - [x] Handle Ctrl+C saat active transfer (Telethon pending task)
 
-- [ ] Compare folder (anti re-download)
+- [x] Compare folder (anti re-download)
+  - channel-scoped compare index
+  - skip existing native media
 
 - [x] Advanced media filter
   - ikuti cara kirim Telegram
@@ -116,6 +118,10 @@
 - [x] Album/grouped_id handling
   - grouped media detection
   - optional album folder structure
+
+- [x] Resume manager modularization
+  - extract resume state management
+  - batching save terpisah dari downloader
 
 ---
 
@@ -180,4 +186,3 @@
 ✔ Resume batch save
 
 ➡️ NEXT:
-- [ ] Compare folder (anti re-download)

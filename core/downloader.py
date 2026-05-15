@@ -4,7 +4,6 @@ Logic utama download media dari Telegram.
 """
 
 import os
-import json
 import asyncio
 import time
 import threading
@@ -23,6 +22,7 @@ from telethon.tl.types import (
 
 from config.config import API_ID, API_HASH, PHONE_NUMBER, SESSION_PATH, OUTPUT_DIR
 from core.compare import CompareIndex
+from core.resume import ResumeManager
 from core.utils import (
     parse_channel, 
     format_size, 
@@ -92,28 +92,6 @@ NATIVE_FILENAME_TYPES = {
 }
 
 
-# ─── Resume ───────────────────────────────────────────────────────────────────
-
-RESUME_PATH = "data/resume.json"
-SAVE_RESUME_EVERY = 10
-
-
-def load_resume() -> dict:
-    if not os.path.exists(RESUME_PATH):
-        return {}
-    try:
-        with open(RESUME_PATH, "r") as f:
-            return json.load(f)
-    except Exception:
-        return {}
-
-
-def save_resume(data: dict):
-    os.makedirs("data", exist_ok=True)
-    with open(RESUME_PATH, "w") as f:
-        json.dump(data, f, indent=2)
-
-
 # ─── Callbacks ────────────────────────────────────────────────────────────────
 
 class DownloadCallbacks:
@@ -169,6 +147,7 @@ class DownloadCallbacks:
     def summary(self, message: str):
         if self.on_summary:
             self.on_summary(message)
+
 
 # ─── Helper Internal ──────────────────────────────────────────────────────────
 
@@ -346,28 +325,16 @@ class Downloader:
         
         try:
             if self.from_date:
-                self.from_date = datetime.strptime(
-                    self.from_date,
-                    "%Y-%m-%d"
-                )
+                self.from_date = datetime.strptime(self.from_date, "%Y-%m-%d")
 
             if self.to_date:
-                self.to_date = datetime.strptime(
-                    self.to_date,
-                    "%Y-%m-%d"
-                )
+                self.to_date = datetime.strptime(self.to_date, "%Y-%m-%d")
 
         except ValueError:
             raise ValueError("Format tanggal harus YYYY-MM-DD.")
 
-        if (
-            self.from_date
-            and self.to_date
-            and self.to_date < self.from_date
-        ):
-            raise ValueError(
-                "to_date harus lebih besar dari from_date."
-            )
+        if self.from_date and self.to_date and self.to_date < self.from_date:
+            raise ValueError("to_date harus lebih besar dari from_date.")
 
     def stop(self):
         """Minta downloader berhenti setelah file saat ini selesai."""
@@ -428,11 +395,6 @@ class Downloader:
         total_messages = client.get_messages(entity, limit=1).total
         print(f"Total   : {total_messages} messages")
 
-        # Resume
-        resume_data = load_resume()
-        channel_key = str(self.channel)
-        last_id = resume_data.get(channel_key, 0)
-
         # Explicit range mode → ignore resume
         is_explicit_range = (
             self.min_id > 0
@@ -441,21 +403,20 @@ class Downloader:
             or self.to_date
         )
 
-        if not is_explicit_range and last_id > 0:
-            print(f"Resume  : last_id {last_id}")
+        # Setup resume
+        resume = ResumeManager(str(self.channel))
+
+        if not is_explicit_range and resume.last_id > 0:
+            print(f"Resume  : last_id {resume.last_id}")
 
         # Total untuk callback: pakai limit kalau ada, "?" kalau tidak
         total: Union[int, str] = "?"
 
-        downloaded_count = 0      # untuk logic limit
-        display_count = 0         # untuk UI (nomor file)
-        _resume_save_counter = 0  # khusus batching resume
+        downloaded_count = 0  # untuk logic limit
+        display_count = 0     # untuk UI (nomor file)
 
-        if is_explicit_range:
-            effective_min_id = self.min_id
-        else:
-            effective_min_id = max(last_id, self.min_id)
-        
+        effective_min_id = self.min_id if is_explicit_range else max(resume.last_id, self.min_id)
+
         for message in client.iter_messages(
             entity, 
             min_id=effective_min_id, 
@@ -463,8 +424,8 @@ class Downloader:
             reverse=True
         ):
             if self._stop_event.is_set():
-                if not is_explicit_range and channel_key in resume_data:
-                    save_resume(resume_data)
+                if not is_explicit_range:
+                    resume.flush()
                 return
             
             message_date = message.date.replace(tzinfo=None)
@@ -498,7 +459,7 @@ class Downloader:
                     self.callbacks.progress(100.0, "SKIP", "-")
 
                     if not is_explicit_range:
-                        resume_data[channel_key] = message.id
+                        resume.update(message.id)
 
                     continue
 
@@ -527,21 +488,17 @@ class Downloader:
                     self.callbacks.error(f"Gagal download {filename}: {e}")
                     break
 
-            if download_success:
-                if not is_explicit_range:
-                    resume_data[channel_key] = message.id
-                    _resume_save_counter += 1
-                    if _resume_save_counter % SAVE_RESUME_EVERY == 0:
-                        save_resume(resume_data)
+            if download_success and not is_explicit_range:
+                resume.update(message.id)
 
             # Early stop kalau limit tercapai
             if self.limit is not None and downloaded_count >= self.limit:
                 break
 
         if not self._stop_event.is_set():
-            # Final save, pastikan progress terakhir tersimpan
-            if not is_explicit_range and channel_key in resume_data:
-                save_resume(resume_data)
+            # Final flush, pastikan progress terakhir tersimpan
+            if not is_explicit_range:
+                resume.flush()
 
             if self.limit is not None:
                 if downloaded_count >= self.limit:
