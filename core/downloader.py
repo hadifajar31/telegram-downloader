@@ -362,6 +362,9 @@ class Downloader:
         def progress_callback(received: int, total: int):
             nonlocal last_bytes, last_time, last_speed_str, last_eta_str
 
+            if self._stop_event.is_set():
+                return
+
             now = time.time()
             elapsed = now - last_time
             percent = (received / total * 100) if total > 0 else 0

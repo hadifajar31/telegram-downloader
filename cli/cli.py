@@ -181,4 +181,5 @@ def main(args=None):
         while thread.is_alive():
             thread.join(0.2)
 
+        _clear_progress_line()
         print("STOPPED.")
