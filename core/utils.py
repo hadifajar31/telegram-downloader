@@ -159,14 +159,18 @@ def build_output_path(
     media_type: str,
     filename: str,
     grouped_id: int | None = None,
+    grouped_count: int = 0,
 ) -> str:
     """
     Build path output:
     - normal:
       base/channel/media_type/filename
 
-    - grouped media:
+    - grouped media (>1 item):
       base/channel/media_type/album_<grouped_id>/filename
+
+    grouped_count: jumlah media valid dalam group ini.
+    Album folder hanya dibuat kalau grouped_count > 1.
     """
     channel_folder = safe_filename(channel_name)
     media_folder = safe_filename(media_type.lower())
@@ -177,8 +181,8 @@ def build_output_path(
         media_folder,
     ]
 
-    # Album/grouped media
-    if grouped_id is not None:
+    # Album folder hanya untuk grouped media yang benar-benar >1 item
+    if grouped_id is not None and grouped_count > 1:
         path_parts.append(f"album_{grouped_id}")
 
     folder_path = os.path.join(*path_parts)

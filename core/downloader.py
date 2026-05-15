@@ -229,6 +229,30 @@ class Downloader:
 
         effective_min_id = self.min_id if is_explicit_range else max(resume.last_id, self.min_id)
 
+        # Pre-scan: hitung jumlah media valid per grouped_id
+        # Biar album folder hanya dibuat kalau isinya >1 file
+        grouped_counts: dict[int, int] = {}
+        for msg in client.iter_messages(
+            entity,
+            min_id=effective_min_id,
+            max_id=self.max_id if self.max_id > 0 else None,
+            reverse=True
+        ):
+            if msg.grouped_id is None:
+                continue
+
+            msg_date = msg.date.replace(tzinfo=None)
+            if self.from_date and msg_date < self.from_date:
+                continue
+            if self.to_date and msg_date > self.to_date:
+                continue
+
+            mt = get_media_type(msg)
+            if not passes_filter(mt, self.filter):
+                continue
+
+            grouped_counts[msg.grouped_id] = grouped_counts.get(msg.grouped_id, 0) + 1
+
         for message in client.iter_messages(
             entity,
             min_id=effective_min_id,
@@ -258,7 +282,8 @@ class Downloader:
                 OUTPUT_DIR,
                 channel_folder,
                 media_type, filename,
-                grouped_id=message.grouped_id
+                grouped_id=message.grouped_id,
+                grouped_count=grouped_counts.get(message.grouped_id, 0) if message.grouped_id else 0,
             )
 
             display_count += 1
