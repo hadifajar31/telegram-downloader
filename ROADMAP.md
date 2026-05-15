@@ -128,6 +128,7 @@
   - [x] validasi pilihan menu
   - [x] validasi channel
   - [x] reusable prompt helper
+* [ ] Cleanup terminal progress line after stop/download finish
 * [ ] Better progress output for very fast downloads
 * [ ] Logging (opsional)
 

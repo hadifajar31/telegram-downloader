@@ -96,7 +96,7 @@ def run_menu():
             from_date = prompt_date("Masukkan from date (kosongkan untuk skip): ")
             to_date = prompt_date("Masukkan to date (kosongkan untuk skip): ")
 
-            args = [channel, "--filter", filter_type]
+            args = ["--channel",channel, "--filter", filter_type]
 
             if limit is not None:
                 args += ["--limit", str(limit)]
