@@ -5,6 +5,7 @@ Logic utama download media dari Telegram.
 
 import os
 import json
+import asyncio
 import time
 import threading
 from typing import Callable, Optional, Union
@@ -373,6 +374,8 @@ class Downloader:
 
     def run(self):
         """Jalankan proses download secara synchronous."""
+        asyncio.set_event_loop(asyncio.new_event_loop())
+        
         self._stop_event.clear()
         os.makedirs(OUTPUT_DIR, exist_ok=True)
 

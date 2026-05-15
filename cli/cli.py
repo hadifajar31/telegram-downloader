@@ -5,7 +5,6 @@ CLI wrapper untuk Teleoder.
 
 import argparse
 import sys
-import time
 
 from core.downloader import Downloader, DownloadCallbacks, VALID_FILTERS
 
@@ -136,27 +135,36 @@ def main(args=None):
 
     try:
         downloader = Downloader(config, callbacks)
-
-        limit_display = (
-            config["limit"]
-            if config["limit"] is not None
-            else "all"
-        )
-
-        print(f"Channel : {config['channel']}")
-        print(f"Filter  : {config['filter']}")
-        print(f"Limit   : {limit_display}")
-        print(f"Min ID  : {config['min_id'] or '-'}")
-        print(f"Max ID  : {config['max_id'] or '-'}")
-        print(f"From    : {config['from_date'] or '-'}")
-        print(f"To      : {config['to_date'] or '-'}")
-        print("Memulai download...")
-
-        downloader.run()
     except ValueError as e:
         print(f"[ERROR] {e}", file=sys.stderr)
         return
+
+    limit_display = (
+        config["limit"]
+        if config["limit"] is not None
+        else "all"
+    )
+
+    print(f"Channel : {config['channel']}")
+    print(f"Filter  : {config['filter']}")
+    print(f"Limit   : {limit_display}")
+    print(f"Min ID  : {config['min_id'] or '-'}")
+    print(f"Max ID  : {config['max_id'] or '-'}")
+    print(f"From    : {config['from_date'] or '-'}")
+    print(f"To      : {config['to_date'] or '-'}")
+    print("Memulai download...")
+
+    thread = downloader.run_in_thread()
+
+    try:
+        while thread.is_alive():
+            thread.join(0.2)
+
     except KeyboardInterrupt:
-        print("\n\nSTOPPED oleh user.")
-        time.sleep(0.5)
-        return
+        print("\n\nStopping... menunggu transfer selesai.")
+        downloader.stop()
+
+        while thread.is_alive():
+            thread.join(0.2)
+
+        print("STOPPED.")
