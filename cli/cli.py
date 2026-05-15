@@ -11,6 +11,16 @@ from core.downloader import Downloader, DownloadCallbacks, VALID_FILTERS
 
 # ─── Callbacks untuk CLI ──────────────────────────────────────────────────────
 
+def _clear_progress_line(stream=sys.stdout):
+    """Hapus progress line aktif di terminal."""
+    print(
+        "\r" + " " * 120 + "\r",
+        end="",
+        flush=True,
+        file=stream,
+    )
+
+
 def _make_cli_callbacks() -> DownloadCallbacks:
     """Buat callbacks yang print output ke terminal."""
 
@@ -19,16 +29,18 @@ def _make_cli_callbacks() -> DownloadCallbacks:
         print(f"\r  Progress: {percent:5.1f}%  |  {speed}  |  ETA: {eta}   ", end="", flush=True)
 
     def on_file(current: int, total: int, filename: str):
-        # Newline dulu biar tidak menimpa progress bar sebelumnya
-        print()
+        # Bersihkan progress line sebelum print nama file baru
+        _clear_progress_line()
         print(f"[{current}/{total}] {filename}")
 
     def on_error(message: str):
-        print(file=sys.stderr)
+        # Bersihkan progress line sebelum print error
+        _clear_progress_line(sys.stderr)
         print(f"[ERROR] {message}", file=sys.stderr)
 
     def on_summary(message: str):
-        print()
+        # Bersihkan progress line sebelum print summary
+        _clear_progress_line()
         print(message)
 
     return DownloadCallbacks(
@@ -161,7 +173,8 @@ def main(args=None):
             thread.join(0.2)
 
     except KeyboardInterrupt:
-        print("\n\nStopping... menunggu transfer selesai.")
+        _clear_progress_line()
+        print("Stopping... menunggu transfer selesai.")
         downloader.stop()
 
         while thread.is_alive():

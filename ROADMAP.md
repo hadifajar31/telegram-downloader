@@ -187,7 +187,7 @@
 ✔ Resume batch save
 
 ➡️ NEXT:
-* [ ] Cleanup terminal progress line after stop/download finish
+* [x] Cleanup terminal progress line after stop/download finish
 * [ ] Better progress output for very fast downloads
 * [ ] Only create album folder for grouped media with >1 item
 * [ ] Improve CLI UX
