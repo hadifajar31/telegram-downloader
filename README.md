@@ -12,6 +12,9 @@ Mendukung streaming download, smart limit, dan resume otomatis.
 * Streaming download (tanpa scan list dulu)
 * Handle FloodWait otomatis (delay + retry)
 * Advanced media filter berdasarkan cara kirim Telegram
+* Compare engine (anti re-download)
+* Graceful Ctrl+C shutdown
+* Download by ID/date range
 * CLI output lebih clean + informative
 * Struktur folder otomatis per channel + media type
 
@@ -40,6 +43,22 @@ Mendukung streaming download, smart limit, dan resume otomatis.
 * Smart limit (skip tidak dihitung)
 * Stop download kapan saja
 * Streaming download
+* Download by ID range (min-id / max-id)
+* Download by date range (from-date / to-date)
+
+---
+
+## 🗂️ Struktur Project
+
+```
+core/
+├── downloader.py
+├── filters.py
+├── naming.py
+├── compare.py
+├── resume.py
+└── utils.py
+```
 
 ---
 
@@ -92,7 +111,14 @@ Masukkan OTP dan password (jika ada 2FA).
 ### Mode CLI
 
 ```bash
+# Download foto, limit 5
 python main.py --cli -- --channel=@channelname --filter photo --limit 5
+
+# Download video berdasarkan ID range
+python main.py --cli -- --channel=@test --filter video --min-id 100 --max-id 200
+
+# Download berdasarkan date range
+python main.py --cli -- --channel=@test --from-date 2025-01-01 --to-date 2025-01-31
 ```
 
 ### Mode Menu
@@ -113,19 +139,18 @@ Lalu pilih:
 
 ## 🎯 Filter yang tersedia
 
-* Advanced media filter:
-  - all
-  - photo
-  - photo_document
-  - video
-  - video_note
-  - video_document
-  - gif
-  - audio
-  - voice
-  - archive
-  - sticker
-  - document
+* all
+* photo
+* photo_document
+* video
+* video_note
+* video_document
+* gif
+* audio
+* voice
+* archive
+* sticker
+* document
 
 ---
 
@@ -150,6 +175,11 @@ Tele/
 Channel : @example
 Filter  : photo
 Limit   : 5
+Min ID  : -
+Max ID  : -
+From    : -
+To      : -
+
 Memulai download...
 Total   : 120 messages
 Resume  : last_id 80
@@ -166,21 +196,19 @@ Resume  : last_id 80
 
 * GUI (CustomTkinter)
 * Topic system
-* Dedup system
-* Compare & sync
+* Dedup system (MD5/hash)
+* Sync system
 
 ---
 
 ## 🧠 Planned Features
 
-> Forum/topic split support masih dalam pengembangan.
-
 * MD5 deduplication
-* Compare & sync
 * Multi-source archive
 * GUI
 
 ---
+
 ## 📄 License
 
 MIT License

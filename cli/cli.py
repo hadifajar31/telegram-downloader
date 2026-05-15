@@ -164,6 +164,7 @@ def main(args=None):
     print(f"Max ID  : {config['max_id'] or '-'}")
     print(f"From    : {config['from_date'] or '-'}")
     print(f"To      : {config['to_date'] or '-'}")
+    print()
     print("Memulai download...")
 
     thread = downloader.run_in_thread()

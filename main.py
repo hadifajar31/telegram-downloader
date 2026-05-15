@@ -25,25 +25,21 @@ def run_menu():
         elif choice == "cli":
             channel = prompt_channel("Masukkan channel (@username / link / ID): ")
 
-            print("\nPilih filter:")
+            print("\n=== Filter ===")
             print("1. All")
-
+            print()
             print("2. Photo")
             print("3. Photo Document")
-
+            print()
             print("4. Video")
             print("5. Video Note")
             print("6. Video Document")
-
+            print()
             print("7. GIF")
-
             print("8. Audio")
             print("9. Voice")
-
             print("10. Archive")
-
             print("11. Sticker")
-
             print("12. Document")
 
             filter_map = {
@@ -70,6 +66,7 @@ def run_menu():
 
             filter_type = prompt_choice("Masukkan pilihan: ", choices=filter_map, default="1")
 
+            print("\n=== Range ===")
             limit = prompt_int(
                 "Masukkan limit file (kosongkan untuk semua): ",
                 allow_empty=True,
@@ -90,7 +87,6 @@ def run_menu():
 
             if max_id and max_id <= min_id:
                 print("[ERROR] max_id harus lebih besar dari min_id.")
-                print()
                 continue
 
             from_date = prompt_date("Masukkan from date (kosongkan untuk skip): ")
@@ -113,9 +109,10 @@ def run_menu():
             if to_date:
                 args += ["--to-date", to_date]
 
+            print("\n=== Download ===")
             cli_main(args)
 
-            print("\nKembali ke menu...\n")
+            print("\nKembali ke menu...")
 
         elif choice == "gui":
             print("GUI belum tersedia. Jalankan dengan --cli untuk mode terminal.")
@@ -123,7 +120,7 @@ def run_menu():
             print("Contoh: python main.py --cli @channelname --filter video")
 
         elif choice == "exit":
-            print("Keluar...\n")
+            print("Keluar...")
             break
 
         print()
