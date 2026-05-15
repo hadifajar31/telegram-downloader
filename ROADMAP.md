@@ -81,7 +81,7 @@
   - resume hanya update saat download sukses
   - retry lebih aman
   - cleanup session lebih rapi
-- [ ] Handle Ctrl+C saat active transfer (Telethon pending task)
+- [x] Handle Ctrl+C saat active transfer (Telethon pending task)
 
 - [ ] Compare folder (anti re-download)
 
@@ -175,6 +175,8 @@
 ✔ Target-based limit (smart)
 ✔ Early stop
 ✔ Skip existing file
+✔ Graceful Ctrl+C shutdown
+✔ Resume batch save
 
 ➡️ NEXT:
-- [ ] Handle Ctrl+C saat active transfer (Telethon pending task)
+- [ ] Compare folder (anti re-download)
