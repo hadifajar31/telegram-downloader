@@ -164,6 +164,7 @@ def main(args=None):
     print(f"Max ID  : {config['max_id'] or '-'}")
     print(f"From    : {config['from_date'] or '-'}")
     print(f"To      : {config['to_date'] or '-'}")
+    print()
     print("Memulai download...")
 
     thread = downloader.run_in_thread()
@@ -180,4 +181,5 @@ def main(args=None):
         while thread.is_alive():
             thread.join(0.2)
 
+        _clear_progress_line()
         print("STOPPED.")

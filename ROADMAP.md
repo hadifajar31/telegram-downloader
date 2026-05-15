@@ -162,8 +162,8 @@
 * [ ] Fix main.py --cli argument forwarding
 * [ ] Prevent downloader auto-login prompt
 * [ ] Add __main__ entry for cli.py
-* [ ] Improve CLI UX
-* [ ] Only create album folder for grouped media with >1 item
+* [x] Improve CLI UX
+* [x] Only create album folder for grouped media with >1 item
 * [x] Optimize save resume (batch, tidak setiap pesan)
 * [x] Rapihin output CLI
 * [x] Tampilkan total asli + total setelah resume
@@ -187,6 +187,4 @@
 ✔ Resume batch save
 
 ➡️ NEXT:
-* [ ] Only create album folder for grouped media with >1 item
-* [ ] Improve CLI UX
 * [ ] Logging (opsional)
