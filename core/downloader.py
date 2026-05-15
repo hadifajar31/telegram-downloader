@@ -328,30 +328,42 @@ class Downloader:
         """Download satu file dengan progress callback."""
         last_bytes = 0
         last_time = time.time()
+        start_time = last_time
+
+        # Cache last valid stats — biar tidak tampil "..." terus
+        last_speed_str = "..."
+        last_eta_str = "..."
 
         def progress_callback(received: int, total: int):
-            nonlocal last_bytes, last_time
+            nonlocal last_bytes, last_time, last_speed_str, last_eta_str
 
             now = time.time()
             elapsed = now - last_time
+            percent = (received / total * 100) if total > 0 else 0
+
+            # Force final update saat download selesai
+            if received == total:
+                total_elapsed = now - start_time
+                if total_elapsed > 0:
+                    last_speed_str = f"{format_size(int(total / total_elapsed))}/s"
+                last_eta_str = "0s"
+                self.callbacks.progress(100.0, last_speed_str, last_eta_str)
+                return
 
             if elapsed >= 0.5:
                 delta_bytes = received - last_bytes
                 speed_bps = delta_bytes / elapsed if elapsed > 0 else 0
-                speed_str = f"{format_size(int(speed_bps))}/s"
+                last_speed_str = f"{format_size(int(speed_bps))}/s"
 
                 remaining_bytes = total - received
                 eta_seconds = remaining_bytes / speed_bps if speed_bps > 0 else 0
-                eta_str = format_eta(eta_seconds)
+                last_eta_str = format_eta(eta_seconds)
 
                 last_bytes = received
                 last_time = now
-            else:
-                speed_str = "..."
-                eta_str = "..."
 
-            percent = (received / total * 100) if total > 0 else 0
-            self.callbacks.progress(percent, speed_str, eta_str)
+            # Pakai cache kalau belum waktunya update
+            self.callbacks.progress(percent, last_speed_str, last_eta_str)
 
         client.download_media(
             message,

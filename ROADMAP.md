@@ -134,8 +134,8 @@
   - [x] validasi pilihan menu
   - [x] validasi channel
   - [x] reusable prompt helper
-* [ ] Cleanup terminal progress line after stop/download finish
-* [ ] Better progress output for very fast downloads
+* [x] Cleanup terminal progress line after stop/download finish
+* [x] Better progress output for very fast downloads
 * [ ] Logging (opsional)
 
 ---
@@ -187,8 +187,6 @@
 ✔ Resume batch save
 
 ➡️ NEXT:
-* [x] Cleanup terminal progress line after stop/download finish
-* [ ] Better progress output for very fast downloads
 * [ ] Only create album folder for grouped media with >1 item
 * [ ] Improve CLI UX
 * [ ] Logging (opsional)
