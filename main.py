@@ -1,4 +1,6 @@
 import argparse
+import sys
+
 from cli.cli import main as cli_main
 from core.auth import login
 from core.input_helper import prompt_choice, prompt_int, prompt_date, prompt_channel
@@ -141,7 +143,8 @@ def main():
         return
 
     if args.cli:
-        cli_main(unknown)
+        cli_args = sys.argv[3:]
+        cli_main(cli_args)
         return
 
     if args.gui:

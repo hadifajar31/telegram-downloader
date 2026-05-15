@@ -49,7 +49,9 @@ def _build_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
-        "channel",
+        "--channel",
+        "-c",
+        required=True,
         help="Channel ID, username, atau link. Contoh: @mychannel / https://t.me/mychannel",
     )
 

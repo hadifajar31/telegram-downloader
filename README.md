@@ -92,7 +92,7 @@ Masukkan OTP dan password (jika ada 2FA).
 ### Mode CLI
 
 ```bash
-python main.py --cli -- @channelname --filter photo --limit 5
+python main.py --cli -- --channel=@channelname --filter photo --limit 5
 ```
 
 ### Mode Menu
