@@ -152,11 +152,11 @@
 > Tidak urgent, kerjakan setelah fitur utama selesai
 
 * [ ] Logout akun
-* [ ] Optimize save resume (batch, tidak setiap pesan)
 * [ ] Fix main.py --cli argument forwarding
 * [ ] Prevent downloader auto-login prompt
 * [ ] Add __main__ entry for cli.py
 * [ ] Improve CLI UX
+* [x] Optimize save resume (batch, tidak setiap pesan)
 * [x] Rapihin output CLI
 * [x] Tampilkan total asli + total setelah resume
 * [x] Validasi input CLI lebih ketat
@@ -177,4 +177,4 @@
 ✔ Skip existing file
 
 ➡️ NEXT:
-* [ ] Optimize save resume (batch, tidak setiap pesan)
+- [ ] Handle Ctrl+C saat active transfer (Telethon pending task)

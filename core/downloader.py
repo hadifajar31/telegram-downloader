@@ -93,6 +93,7 @@ NATIVE_FILENAME_TYPES = {
 # ─── Resume ───────────────────────────────────────────────────────────────────
 
 RESUME_PATH = "data/resume.json"
+SAVE_RESUME_EVERY = 10
 
 
 def load_resume() -> dict:
@@ -434,8 +435,9 @@ class Downloader:
         # Total untuk callback: pakai limit kalau ada, "?" kalau tidak
         total: Union[int, str] = "?"
 
-        downloaded_count = 0  # untuk logic limit
-        display_count = 0     # untuk UI (nomor file)
+        downloaded_count = 0      # untuk logic limit
+        display_count = 0         # untuk UI (nomor file)
+        _resume_save_counter = 0  # khusus batching resume
 
         if is_explicit_range:
             effective_min_id = self.min_id
@@ -449,6 +451,8 @@ class Downloader:
             reverse=True
         ):
             if self._stop_event.is_set():
+                if not is_explicit_range and channel_key in resume_data:
+                    save_resume(resume_data)
                 return
             
             message_date = message.date.replace(tzinfo=None)
@@ -483,7 +487,9 @@ class Downloader:
 
                     if not is_explicit_range:
                         resume_data[channel_key] = message.id
-                        save_resume(resume_data)
+                        _resume_save_counter += 1
+                        if _resume_save_counter % SAVE_RESUME_EVERY == 0:
+                            save_resume(resume_data)
 
                     continue
 
@@ -514,13 +520,19 @@ class Downloader:
             if download_success:
                 if not is_explicit_range:
                     resume_data[channel_key] = message.id
-                    save_resume(resume_data)
+                    _resume_save_counter += 1
+                    if _resume_save_counter % SAVE_RESUME_EVERY == 0:
+                        save_resume(resume_data)
 
             # Early stop kalau limit tercapai
             if self.limit is not None and downloaded_count >= self.limit:
                 break
 
         if not self._stop_event.is_set():
+            # Final save, pastikan progress terakhir tersimpan
+            if not is_explicit_range and channel_key in resume_data:
+                save_resume(resume_data)
+
             if self.limit is not None:
                 if downloaded_count >= self.limit:
                     self.callbacks.summary(
