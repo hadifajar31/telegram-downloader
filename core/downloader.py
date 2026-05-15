@@ -13,83 +13,29 @@ from datetime import datetime
 from telethon.sync import TelegramClient
 from telethon import errors
 from telethon.tl.types import (
-    DocumentAttributeAnimated,
-    DocumentAttributeAudio,
     DocumentAttributeFilename,
-    DocumentAttributeSticker,
-    DocumentAttributeVideo
 )
 
 from config.config import API_ID, API_HASH, PHONE_NUMBER, SESSION_PATH, OUTPUT_DIR
 from core.compare import CompareIndex
 from core.resume import ResumeManager
-from core.utils import (
-    parse_channel, 
-    format_size, 
-    format_eta, 
-    build_output_path, 
-    ensure_unique_filename, 
-    get_channel_folder_name, 
-    generate_document_filename, 
-    generate_native_filename, 
+from core.filters import (
+    VALID_FILTERS,
+    FALLBACK_EXT,
+    NATIVE_FILENAME_TYPES,
+    get_media_type,
+    passes_filter,
 )
-
-
-# ─── Tipe Filter ──────────────────────────────────────────────────────────────
-
-VALID_FILTERS = {
-    "all",
-    "photo",
-    "photo_document",
-    "video",
-    "video_note",
-    "video_document",
-    "gif",
-    "audio",
-    "voice",
-    "archive",
-    "sticker",
-    "document",
-}
-
-# Ekstensi archive yang dikenali
-ARCHIVE_EXTENSIONS = {".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz"}
-ARCHIVE_MIME_TYPES = {
-    "application/x-rar-compressed",
-    "application/x-7z-compressed",
-    "application/x-bzip2",
-    "application/x-tar",
-    "application/x-rar",
-    "application/gzip",
-    "application/zip",
-}
-
-# Fallback extension per media type
-FALLBACK_EXT = {
-    "photo": "jpg",
-    "photo_document": "jpg",
-    "video": "mp4",
-    "video_note": "mp4",
-    "video_document": "mp4",
-    "gif": "mp4",
-    "audio": "mp3",
-    "voice": "ogg",
-    "sticker": "webp",
-    "archive": "zip",
-    "document": "bin",
-}
-
-# Media yang pakai auto-generated filename
-NATIVE_FILENAME_TYPES = {
-    "photo",
-    "photo_document",
-    "video",
-    "video_note",
-    "video_document",
-    "gif",
-    "voice",
-    "sticker",
-}
+from core.utils import (
+    parse_channel,
+    format_size,
+    format_eta,
+    build_output_path,
+    ensure_unique_filename,
+    get_channel_folder_name,
+    generate_document_filename,
+    generate_native_filename,
+)
 
 
 # ─── Callbacks ────────────────────────────────────────────────────────────────
@@ -151,99 +97,13 @@ class DownloadCallbacks:
 
 # ─── Helper Internal ──────────────────────────────────────────────────────────
 
-def _is_archive(filename: str, mime: str) -> bool:
-    """Cek apakah file termasuk archive berdasarkan ekstensi atau mime type."""
-    ext = os.path.splitext(filename)[1].lower()
-    return ext in ARCHIVE_EXTENSIONS or mime in ARCHIVE_MIME_TYPES
-
-
-def _get_media_type(message) -> Optional[str]:
-    """
-    Kembalikan tipe media dari message, atau None kalau bukan media.
-
-    Urutan prioritas detection:
-    1. photo
-    2. video_note
-    3. gif
-    4. video
-    5. audio
-    6. voice
-    7. sticker
-    8. photo_document
-    9. video_document
-    10. archive
-    11. document
-    """
-    # 1. Photo (dikirim sebagai foto biasa)
-    if message.photo and not message.document:
-        return "photo"
-
-    if message.document:
-        attrs = message.document.attributes
-        mime = message.document.mime_type or ""
-
-        # Kumpulkan atribut yang ada
-        attr_types = {type(a) for a in attrs}
-
-        # Cek round video (video_note)
-        for attr in attrs:
-            if isinstance(attr, DocumentAttributeVideo) and attr.round_message:
-                return "video_note"
-
-        # 3. GIF (animated document)
-        if DocumentAttributeAnimated in attr_types:
-            return "gif"
-
-        # 4. Video biasa Telegram
-        if (
-            DocumentAttributeVideo in attr_types
-            and DocumentAttributeFilename in attr_types
-        ):
-            return "video"
-
-        # 5-6. Audio / Voice
-        for attr in attrs:
-            if isinstance(attr, DocumentAttributeAudio):
-                return "voice" if attr.voice else "audio"
-
-        # 7. Sticker
-        if DocumentAttributeSticker in attr_types:
-            return "sticker"
-
-        # 8. Photo as document (gambar dikirim sebagai file)
-        if mime.startswith("image/"):
-            return "photo_document"
-        
-        # 9. Video as document/file
-        if mime.startswith("video/"):
-            return "video_document"
-
-        # Ambil filename untuk cek archive
-        filename = ""
-        for attr in attrs:
-            if isinstance(attr, DocumentAttributeFilename):
-                filename = attr.file_name
-                break
-
-        # 10. Archive
-        if _is_archive(filename, mime):
-            return "archive"
-
-        # 11. Fallback document
-        return "document"
-
-    return None
-
-
 def _get_filename(message, media_type: str, msg_id: int) -> str:
     """
     Generate filename berdasarkan tipe media Telegram.
     """
-
     # Native-like media → auto filename
     if media_type in NATIVE_FILENAME_TYPES:
         ext = FALLBACK_EXT.get(media_type, "bin")
-
         return generate_native_filename(
             media_type=media_type,
             message_id=msg_id,
@@ -258,21 +118,11 @@ def _get_filename(message, media_type: str, msg_id: int) -> str:
 
     # Fallback kalau document tidak punya filename atau media type tidak dikenali
     ext = FALLBACK_EXT.get(media_type, "bin")
-
     return generate_native_filename(
         media_type=media_type,
         message_id=msg_id,
         ext=ext,
     )
-
-
-def _passes_filter(media_type: Optional[str], filter_type: str) -> bool:
-    """Cek apakah media lolos filter."""
-    if media_type is None:
-        return False
-    if filter_type == "all":
-        return True
-    return media_type == filter_type
 
 
 # ─── Core Downloader ──────────────────────────────────────────────────────────
@@ -310,10 +160,10 @@ class Downloader:
 
         if not raw_channel:
             raise ValueError("Channel tidak boleh kosong.")
-        
+
         if self.limit is not None and self.limit <= 0:
             raise ValueError("Limit harus lebih dari 0 atau None untuk semua.")
-        
+
         if self.min_id < 0:
             raise ValueError("min_id tidak boleh negatif.")
 
@@ -322,7 +172,7 @@ class Downloader:
 
         if self.max_id and self.max_id <= self.min_id:
             raise ValueError("max_id harus lebih besar dari min_id.")
-        
+
         try:
             if self.from_date:
                 self.from_date = datetime.strptime(self.from_date, "%Y-%m-%d")
@@ -345,7 +195,7 @@ class Downloader:
         # Fix: pastikan event loop baru di thread non-main
         # Tanpa ini, Telethon bisa raise "no current event loop" di background thread
         asyncio.set_event_loop(asyncio.new_event_loop())
-        
+
         self._stop_event.clear()
         os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -382,12 +232,10 @@ class Downloader:
 
     def _download_all(self, client: TelegramClient):
         """Stream pesan dan download langsung per file."""
-        # Resolve entity, penting untuk private channel
         channel_ref = int(self.channel) if self.channel.lstrip('-').isdigit() else self.channel
         entity = client.get_entity(channel_ref)
         channel_folder = get_channel_folder_name(entity)
 
-        # Build compare index untuk channel ini
         channel_base = os.path.join(OUTPUT_DIR, channel_folder)
         compare_index = CompareIndex(channel_base)
         compare_index.build()
@@ -395,7 +243,6 @@ class Downloader:
         total_messages = client.get_messages(entity, limit=1).total
         print(f"Total   : {total_messages} messages")
 
-        # Explicit range mode → ignore resume
         is_explicit_range = (
             self.min_id > 0
             or self.max_id > 0
@@ -403,23 +250,21 @@ class Downloader:
             or self.to_date
         )
 
-        # Setup resume
         resume = ResumeManager(str(self.channel))
 
         if not is_explicit_range and resume.last_id > 0:
             print(f"Resume  : last_id {resume.last_id}")
 
-        # Total untuk callback: pakai limit kalau ada, "?" kalau tidak
         total: Union[int, str] = "?"
 
-        downloaded_count = 0  # untuk logic limit
-        display_count = 0     # untuk UI (nomor file)
+        downloaded_count = 0
+        display_count = 0
 
         effective_min_id = self.min_id if is_explicit_range else max(resume.last_id, self.min_id)
 
         for message in client.iter_messages(
-            entity, 
-            min_id=effective_min_id, 
+            entity,
+            min_id=effective_min_id,
             max_id=self.max_id if self.max_id > 0 else None,
             reverse=True
         ):
@@ -427,7 +272,7 @@ class Downloader:
                 if not is_explicit_range:
                     resume.flush()
                 return
-            
+
             message_date = message.date.replace(tzinfo=None)
 
             if self.from_date and message_date < self.from_date:
@@ -435,21 +280,20 @@ class Downloader:
 
             if self.to_date and message_date > self.to_date:
                 continue
-            
-            media_type = _get_media_type(message)
 
-            if not _passes_filter(media_type, self.filter):
+            media_type = get_media_type(message)
+
+            if not passes_filter(media_type, self.filter):
                 continue
 
             filename = _get_filename(message, media_type, message.id)
             output_path = build_output_path(
-                OUTPUT_DIR, 
-                channel_folder, 
-                media_type, filename, 
+                OUTPUT_DIR,
+                channel_folder,
+                media_type, filename,
                 grouped_id=message.grouped_id
             )
 
-            # Naik sekali di awal loop
             display_count += 1
 
             # Native-like media → skip kalau sudah ada
@@ -468,7 +312,6 @@ class Downloader:
                 output_path = ensure_unique_filename(output_path)
                 filename = os.path.basename(output_path)
 
-            # Download
             self.callbacks.file(display_count, total, filename)
 
             download_success = False
@@ -491,12 +334,10 @@ class Downloader:
             if download_success and not is_explicit_range:
                 resume.update(message.id)
 
-            # Early stop kalau limit tercapai
             if self.limit is not None and downloaded_count >= self.limit:
                 break
 
         if not self._stop_event.is_set():
-            # Final flush, pastikan progress terakhir tersimpan
             if not is_explicit_range:
                 resume.flush()
 
@@ -511,7 +352,6 @@ class Downloader:
                     )
             else:
                 skip_count = display_count - downloaded_count
-
                 self.callbacks.summary(
                     f"ℹ Selesai! {display_count} file diproses "
                     f"({downloaded_count} download, {skip_count} skip)"
@@ -528,7 +368,6 @@ class Downloader:
             now = time.time()
             elapsed = now - last_time
 
-            # Update speed tiap 0.5 detik
             if elapsed >= 0.5:
                 delta_bytes = received - last_bytes
                 speed_bps = delta_bytes / elapsed if elapsed > 0 else 0
