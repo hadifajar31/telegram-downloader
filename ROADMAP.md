@@ -163,6 +163,7 @@
 * [ ] Prevent downloader auto-login prompt
 * [ ] Add __main__ entry for cli.py
 * [ ] Improve CLI UX
+* [ ] Only create album folder for grouped media with >1 item
 * [x] Optimize save resume (batch, tidak setiap pesan)
 * [x] Rapihin output CLI
 * [x] Tampilkan total asli + total setelah resume
@@ -186,3 +187,8 @@
 ✔ Resume batch save
 
 ➡️ NEXT:
+* [ ] Cleanup terminal progress line after stop/download finish
+* [ ] Better progress output for very fast downloads
+* [ ] Only create album folder for grouped media with >1 item
+* [ ] Improve CLI UX
+* [ ] Logging (opsional)

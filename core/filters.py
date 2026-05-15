@@ -50,33 +50,6 @@ ARCHIVE_MIME_TYPES = {
     "application/zip",
 }
 
-# Fallback extension per media type
-FALLBACK_EXT = {
-    "photo": "jpg",
-    "photo_document": "jpg",
-    "video": "mp4",
-    "video_note": "mp4",
-    "video_document": "mp4",
-    "gif": "mp4",
-    "audio": "mp3",
-    "voice": "ogg",
-    "sticker": "webp",
-    "archive": "zip",
-    "document": "bin",
-}
-
-# Media yang pakai auto-generated filename
-NATIVE_FILENAME_TYPES = {
-    "photo",
-    "photo_document",
-    "video",
-    "video_note",
-    "video_document",
-    "gif",
-    "voice",
-    "sticker",
-}
-
 
 # ─── Archive Detection ────────────────────────────────────────────────────────
 

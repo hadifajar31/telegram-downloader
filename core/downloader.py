@@ -12,29 +12,26 @@ from datetime import datetime
 
 from telethon.sync import TelegramClient
 from telethon import errors
-from telethon.tl.types import (
-    DocumentAttributeFilename,
-)
 
 from config.config import API_ID, API_HASH, PHONE_NUMBER, SESSION_PATH, OUTPUT_DIR
 from core.compare import CompareIndex
 from core.resume import ResumeManager
 from core.filters import (
     VALID_FILTERS,
-    FALLBACK_EXT,
-    NATIVE_FILENAME_TYPES,
     get_media_type,
     passes_filter,
+)
+from core.naming import (
+    NATIVE_FILENAME_TYPES,
+    get_filename,
+    ensure_unique_filename,
 )
 from core.utils import (
     parse_channel,
     format_size,
     format_eta,
     build_output_path,
-    ensure_unique_filename,
     get_channel_folder_name,
-    generate_document_filename,
-    generate_native_filename,
 )
 
 
@@ -93,36 +90,6 @@ class DownloadCallbacks:
     def summary(self, message: str):
         if self.on_summary:
             self.on_summary(message)
-
-
-# ─── Helper Internal ──────────────────────────────────────────────────────────
-
-def _get_filename(message, media_type: str, msg_id: int) -> str:
-    """
-    Generate filename berdasarkan tipe media Telegram.
-    """
-    # Native-like media → auto filename
-    if media_type in NATIVE_FILENAME_TYPES:
-        ext = FALLBACK_EXT.get(media_type, "bin")
-        return generate_native_filename(
-            media_type=media_type,
-            message_id=msg_id,
-            ext=ext,
-        )
-
-    # Document media → pakai nama asli
-    if message.document:
-        for attr in message.document.attributes:
-            if isinstance(attr, DocumentAttributeFilename):
-                return generate_document_filename(attr.file_name)
-
-    # Fallback kalau document tidak punya filename atau media type tidak dikenali
-    ext = FALLBACK_EXT.get(media_type, "bin")
-    return generate_native_filename(
-        media_type=media_type,
-        message_id=msg_id,
-        ext=ext,
-    )
 
 
 # ─── Core Downloader ──────────────────────────────────────────────────────────
@@ -286,7 +253,7 @@ class Downloader:
             if not passes_filter(media_type, self.filter):
                 continue
 
-            filename = _get_filename(message, media_type, message.id)
+            filename = get_filename(message, media_type, message.id)
             output_path = build_output_path(
                 OUTPUT_DIR,
                 channel_folder,
