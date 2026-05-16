@@ -13,7 +13,7 @@ from datetime import datetime
 from telethon.sync import TelegramClient
 from telethon import errors
 
-from config.config import API_ID, API_HASH, PHONE_NUMBER, SESSION_PATH, OUTPUT_DIR
+from config.config import API_ID, API_HASH, SESSION_PATH, OUTPUT_DIR
 from core.compare import CompareIndex
 from core.resume import ResumeManager
 from core.filters import (
@@ -170,7 +170,14 @@ class Downloader:
 
         try:
             client = TelegramClient(SESSION_PATH, API_ID, API_HASH)
-            client.start(phone=PHONE_NUMBER)
+            client.connect()
+
+            if not client.is_user_authorized():
+                self.callbacks.error(
+                    "Belum login. Jalankan login dulu dari menu atau --login."
+                )
+                return
+
             self._download_all(client)
 
         except errors.FloodWaitError as e:
