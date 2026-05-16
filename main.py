@@ -1,5 +1,4 @@
 import argparse
-import sys
 
 from cli.cli import main as cli_main
 from core.auth import login
@@ -140,8 +139,7 @@ def main():
         return
 
     if args.cli:
-        cli_args = sys.argv[3:]
-        cli_main(cli_args)
+        cli_main(unknown)
         return
 
     if args.gui:
