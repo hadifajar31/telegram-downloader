@@ -76,12 +76,14 @@ def run_menu():
                 "Masukkan min ID (kosongkan untuk 0): ",
                 allow_empty=True,
                 default=0,
+                min_value=0,
             )
 
             max_id = prompt_int(
                 "Masukkan max ID (kosongkan untuk 0): ",
                 allow_empty=True,
                 default=0,
+                min_value=0,
             )
 
             if max_id and max_id <= min_id:

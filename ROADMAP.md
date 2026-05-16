@@ -136,7 +136,7 @@
   - [x] reusable prompt helper
 * [x] Cleanup terminal progress line after stop/download finish
 * [x] Better progress output for very fast downloads
-* [ ] Logging
+* [x] Logging
 ---
 
 ## 🖥️ Phase 5 — GUI
@@ -158,6 +158,13 @@
 > Tidak urgent, kerjakan setelah fitur utama selesai
 
 * [ ] Logout akun
+* [ ] Colored console logging
+* [ ] Verbose / quiet logging mode
+* [ ] GUI log panel integration
+* [ ] Structured JSON logging
+* [ ] Improve download summary statistics
+  - separate downloaded / skipped / failed count
+  - avoid counting failed download as skipped
 * [x] Fix main.py --cli argument forwarding
 * [x] Prevent downloader auto-login prompt
 * [x] Add __main__ entry for cli.py
@@ -186,4 +193,8 @@
 ✔ Resume batch save
 
 ➡️ NEXT:
-* [ ] Logging
+* [ ] Hash scanner
+
+* [ ] Hash cache/database
+
+* [ ] Global media index
