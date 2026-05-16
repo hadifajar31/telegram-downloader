@@ -60,7 +60,7 @@
 
 * [x] Hash scanner
 
-* [ ] Hash cache/database
+* [x] Hash cache/database
 
 * [ ] Global media index
 
@@ -193,6 +193,4 @@
 ✔ Resume batch save
 
 ➡️ NEXT:
-* [ ] Hash cache/database
-
 * [ ] Global media index

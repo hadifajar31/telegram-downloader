@@ -7,6 +7,29 @@ from dataclasses import dataclass, field
 
 
 @dataclass
+class CacheEntry:
+    """
+    Metadata cache untuk satu file.
+
+    Dipakai untuk validasi apakah file berubah sejak terakhir di-hash.
+    Cache dianggap valid kalau size dan mtime masih sama.
+
+    Attributes
+    ----------
+    hash : str
+        SHA256 hex digest file.
+    size : int
+        Ukuran file dalam bytes saat di-hash.
+    mtime : float
+        Modified time (os.path.getmtime) saat di-hash.
+    """
+
+    hash: str
+    size: int
+    mtime: float
+
+
+@dataclass
 class HashEntry:
     """
     Representasi satu file beserta hash-nya.

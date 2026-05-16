@@ -3,12 +3,14 @@ core/dedup/scanner.py
 Folder hash scanner untuk Teleoder dedup engine.
 
 Scan recursive, generate hash tiap file, group duplicate berdasarkan hash.
+Support optional HashCache untuk skip re-hash file yang belum berubah.
 """
 
 import os
 from collections import defaultdict
 from typing import Callable, Optional
 
+from core.dedup.cache import HashCache
 from core.dedup.hasher import hash_file_safe
 from core.dedup.models import DuplicateGroup, HashEntry
 
@@ -20,26 +22,39 @@ class HashScanner:
     Gunakan scan() untuk mulai scan.
     Hasilnya bisa diakses via get_duplicates() atau get_all_entries().
 
+    Opsional: pass HashCache untuk reuse hash file yang belum berubah.
     Scan tidak crash saat file bermasalah, tapi catat di error list.
     """
 
-    def __init__(self, on_progress: Optional[Callable[[int, str], None]] = None):
+    def __init__(
+        self,
+        on_progress: Optional[Callable[[int, str], None]] = None,
+        cache: Optional[HashCache] = None,
+    ):
         """
         Parameters
         ----------
         on_progress : callable | None
             Callback opsional dipanggil tiap file diproses.
             Signature: on_progress(count: int, path: str)
+
+        cache : HashCache | None
+            Cache opsional untuk reuse hash file yang belum berubah.
+            Kalau None, semua file di-hash ulang setiap scan.
         """
         self._on_progress = on_progress
+        self._cache = cache
         self._entries: list[HashEntry] = []
         self._errors: list[str] = []
+        self._cache_hits: int = 0
+        self._cache_misses: int = 0
 
     def scan(self, folder: str) -> "HashScanner":
         """
         Scan folder secara recursive.
 
         Reset state sebelumnya kalau scan dipanggil ulang.
+        Kalau cache di-set, reuse hash untuk file yang belum berubah.
 
         Parameters
         ----------
@@ -61,6 +76,8 @@ class HashScanner:
 
         self._entries = []
         self._errors = []
+        self._cache_hits = 0
+        self._cache_misses = 0
 
         count = 0
 
@@ -68,7 +85,7 @@ class HashScanner:
             for filename in filenames:
                 abs_path = os.path.join(dirpath, filename)
 
-                file_hash = hash_file_safe(abs_path)
+                file_hash = self._resolve_hash(abs_path)
 
                 if file_hash is None:
                     self._errors.append(abs_path)
@@ -87,6 +104,42 @@ class HashScanner:
                     self._on_progress(count, abs_path)
 
         return self
+
+    def _resolve_hash(self, path: str) -> Optional[str]:
+        """
+        Ambil hash untuk satu file.
+
+        Urutan:
+        1. Cek cache — kalau hit dan valid, reuse
+        2. Kalau miss atau tidak ada cache — hash ulang
+        3. Kalau berhasil hash — simpan ke cache
+
+        Parameters
+        ----------
+        path : str
+            Absolute path ke file.
+
+        Returns
+        -------
+        str | None
+            Hash file, atau None kalau gagal.
+        """
+        # Cek cache dulu kalau ada
+        if self._cache is not None:
+            cached = self._cache.get(path)
+            if cached is not None:
+                self._cache_hits += 1
+                return cached
+            self._cache_misses += 1
+
+        # Hash ulang
+        file_hash = hash_file_safe(path)
+
+        # Simpan ke cache kalau berhasil
+        if file_hash is not None and self._cache is not None:
+            self._cache.put(path, file_hash)
+
+        return file_hash
 
     def get_all_entries(self) -> list[HashEntry]:
         """
@@ -143,6 +196,16 @@ class HashScanner:
         """Total file yang gagal di-scan."""
         return len(self._errors)
 
+    @property
+    def cache_hits(self) -> int:
+        """Jumlah file yang hash-nya diambil dari cache (scan terakhir)."""
+        return self._cache_hits
+
+    @property
+    def cache_misses(self) -> int:
+        """Jumlah file yang di-hash ulang karena cache miss (scan terakhir)."""
+        return self._cache_misses
+
     def summary(self) -> dict:
         """
         Ringkasan hasil scan.
@@ -155,6 +218,8 @@ class HashScanner:
             duplicate_groups: int
             duplicate_files : int
             wasted_bytes    : int
+            cache_hits      : int
+            cache_misses    : int
         """
         dupes = self.get_duplicates()
         duplicate_files = sum(g.count for g in dupes)
@@ -166,4 +231,6 @@ class HashScanner:
             "duplicate_groups": len(dupes),
             "duplicate_files": duplicate_files,
             "wasted_bytes": wasted_bytes,
+            "cache_hits": self._cache_hits,
+            "cache_misses": self._cache_misses,
         }
