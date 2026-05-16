@@ -62,7 +62,7 @@
 
 * [x] Hash cache/database
 
-* [ ] Global media index
+* [x] Global media index
 
 ---
 
@@ -193,4 +193,8 @@
 ✔ Resume batch save
 
 ➡️ NEXT:
-* [ ] Global media index
+* [ ] Off
+
+* [ ] Fast Skip
+
+* [ ] Smart Skip

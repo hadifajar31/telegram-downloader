@@ -81,3 +81,22 @@ class DuplicateGroup:
         if self.count <= 1:
             return 0
         return self.size * (self.count - 1)
+
+@dataclass
+class IndexStats:
+    """
+    Statistik global media index.
+
+    Attributes
+    ----------
+    total_hashes : int
+        Jumlah hash unik di index.
+    total_files : int
+        Jumlah total path yang terdaftar.
+    duplicate_hashes : int
+        Jumlah hash yang punya lebih dari 1 path.
+    """
+
+    total_hashes: int
+    total_files: int
+    duplicate_hashes: int

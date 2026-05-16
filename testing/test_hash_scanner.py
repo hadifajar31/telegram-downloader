@@ -19,7 +19,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import time
 
 from core.dedup import HashCache, HashScanner, hash_file, hash_file_safe, is_same_file
-from core.dedup.models import CacheEntry, DuplicateGroup, HashEntry
 from core.utils import format_size
 
 
@@ -344,6 +343,153 @@ def test_scanner_no_cache_still_works():
         shutil.rmtree(tmp)
 
 
+# ─── Global Media Index Tests ─────────────────────────────────────────────────
+
+def test_index_add_and_get():
+    print("\n[TEST] GlobalMediaIndex.add dan get")
+
+    from core.dedup.index import GlobalMediaIndex
+
+    index = GlobalMediaIndex()
+    index.add("abc123", "/folder/file_a.mp4")
+    index.add("abc123", "/folder/file_b.mp4")
+    index.add("xyz789", "/folder/file_c.mp4")
+
+    paths = index.get("abc123")
+    assert paths == {"/folder/file_a.mp4", "/folder/file_b.mp4"}, f"Dapat: {paths}"
+    assert index.get("xyz789") == {"/folder/file_c.mp4"}
+    assert index.get("tidak_ada") == set()
+
+    print("  ✔ add dan get benar")
+
+
+def test_index_exists():
+    print("\n[TEST] GlobalMediaIndex.exists")
+
+    from core.dedup.index import GlobalMediaIndex
+
+    index = GlobalMediaIndex()
+    index.add("abc123", "/path/a.mp4")
+
+    assert index.exists("abc123") is True
+    assert index.exists("tidak_ada") is False
+
+    print("  ✔ exists benar")
+
+
+def test_index_remove():
+    print("\n[TEST] GlobalMediaIndex.remove")
+
+    from core.dedup.index import GlobalMediaIndex
+
+    index = GlobalMediaIndex()
+    index.add("abc123", "/path/a.mp4")
+    index.add("abc123", "/path/b.mp4")
+
+    result = index.remove("/path/a.mp4")
+    assert result is True, "Remove path yang ada harus True"
+    assert "/path/a.mp4" not in index.get("abc123")
+    assert "/path/b.mp4" in index.get("abc123")
+
+    # Remove path yang tidak ada
+    result = index.remove("/path/tidak_ada.mp4")
+    assert result is False, "Remove path yang tidak ada harus False"
+
+    print("  ✔ remove benar")
+
+
+def test_index_cleanup_empty_hash():
+    print("\n[TEST] cleanup hash kosong setelah remove")
+
+    from core.dedup.index import GlobalMediaIndex
+
+    index = GlobalMediaIndex()
+    index.add("abc123", "/path/a.mp4")
+
+    # Hapus satu-satunya path untuk hash ini
+    index.remove("/path/a.mp4")
+
+    # Hash harus ikut hilang
+    assert not index.exists("abc123"), "Hash kosong harus dihapus dari index"
+    assert index.total_hashes == 0
+
+    print("  ✔ Cleanup hash kosong berjalan benar")
+
+
+def test_index_duplicate_tracking():
+    print("\n[TEST] duplicate tracking di GlobalMediaIndex")
+
+    from core.dedup.index import GlobalMediaIndex
+
+    index = GlobalMediaIndex()
+    index.add("hash_dup", "/folder_a/video.mp4")
+    index.add("hash_dup", "/folder_b/video.mp4")
+    index.add("hash_dup", "/folder_c/video.mp4")
+    index.add("hash_unik", "/folder_a/lain.mp4")
+
+    assert index.duplicate_hashes == 1, f"Harusnya 1 duplicate hash, dapat {index.duplicate_hashes}"
+    assert len(index.get("hash_dup")) == 3
+
+    print(f"  duplicate_hashes={index.duplicate_hashes}")
+    print("  ✔ Duplicate tracking benar")
+
+
+def test_index_stats():
+    print("\n[TEST] GlobalMediaIndex.stats")
+
+    from core.dedup.index import GlobalMediaIndex
+
+    index = GlobalMediaIndex()
+    index.add("hash_a", "/path/1.mp4")
+    index.add("hash_a", "/path/2.mp4")
+    index.add("hash_b", "/path/3.mp4")
+
+    s = index.stats()
+    assert s.total_hashes == 2, f"Harusnya 2, dapat {s.total_hashes}"
+    assert s.total_files == 3, f"Harusnya 3, dapat {s.total_files}"
+    assert s.duplicate_hashes == 1, f"Harusnya 1, dapat {s.duplicate_hashes}"
+
+    print(f"  {s}")
+    print("  ✔ Stats benar")
+
+
+def test_index_clear():
+    print("\n[TEST] GlobalMediaIndex.clear")
+
+    from core.dedup.index import GlobalMediaIndex
+
+    index = GlobalMediaIndex()
+    index.add("hash_a", "/path/1.mp4")
+    index.add("hash_b", "/path/2.mp4")
+
+    index.clear()
+
+    assert index.total_hashes == 0
+    assert index.total_files == 0
+    assert not index.exists("hash_a")
+
+    print("  ✔ clear benar")
+
+
+def test_index_add_path_with_new_hash():
+    print("\n[TEST] add path yang sama dengan hash berbeda (update)")
+
+    from core.dedup.index import GlobalMediaIndex
+
+    index = GlobalMediaIndex()
+    index.add("hash_lama", "/path/file.mp4")
+    assert index.exists("hash_lama")
+
+    # File berubah, hash baru
+    index.add("hash_baru", "/path/file.mp4")
+
+    assert not index.exists("hash_lama"), "Hash lama harus dihapus"
+    assert index.exists("hash_baru"), "Hash baru harus ada"
+    assert "/path/file.mp4" in index.get("hash_baru")
+    assert index.total_files == 1
+
+    print("  ✔ Update hash untuk path yang sama benar")
+
 # ─── Runner ───────────────────────────────────────────────────────────────────
 
 def main():
@@ -355,6 +501,14 @@ def main():
         test_hash_file,
         test_hash_file_different,
         test_hash_file_safe_missing,
+        test_index_add_and_get,
+        test_index_exists,
+        test_index_remove,
+        test_index_cleanup_empty_hash,
+        test_index_duplicate_tracking,
+        test_index_stats,
+        test_index_clear,
+        test_index_add_path_with_new_hash,
         test_is_same_file,
         test_scanner_scan,
         test_scanner_duplicates,

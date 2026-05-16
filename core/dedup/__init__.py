@@ -9,15 +9,18 @@ Usage:
 
 from core.dedup.cache import HashCache
 from core.dedup.hasher import hash_file, hash_file_safe, is_same_file
-from core.dedup.models import CacheEntry, DuplicateGroup, HashEntry
+from core.dedup.index import GlobalMediaIndex
+from core.dedup.models import CacheEntry, DuplicateGroup, HashEntry, IndexStats
 from core.dedup.scanner import HashScanner
 
 __all__ = [
     "HashScanner",
     "HashCache",
+    "GlobalMediaIndex",
     "HashEntry",
     "DuplicateGroup",
     "CacheEntry",
+    "IndexStats",
     "hash_file",
     "hash_file_safe",
     "is_same_file",
