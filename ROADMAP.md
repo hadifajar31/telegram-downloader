@@ -193,8 +193,4 @@
 ✔ Resume batch save
 
 ➡️ NEXT:
-* [ ] Off
-
-* [ ] Fast Skip
-
 * [ ] Smart Skip
