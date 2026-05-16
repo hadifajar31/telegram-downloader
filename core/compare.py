@@ -7,6 +7,8 @@ Foundation untuk dedup & sync system.
 
 import os
 
+from core.logger import log_info
+
 
 class CompareIndex:
     """
@@ -40,6 +42,7 @@ class CompareIndex:
         self._index = set()
 
         if not os.path.isdir(self._channel_base):
+            log_info(f"Compare index: folder not found, starting empty ({self._channel_base})")
             return
 
         for dirpath, _dirnames, filenames in os.walk(self._channel_base):
@@ -47,6 +50,8 @@ class CompareIndex:
                 abs_path = os.path.join(dirpath, filename)
                 rel_path = os.path.relpath(abs_path, self._channel_base)
                 self._index.add(rel_path)
+
+        log_info(f"Compare index built: {len(self._index)} files ({self._channel_base})")
 
     def exists(self, output_path: str) -> bool:
         """

@@ -33,6 +33,7 @@ from core.utils import (
     build_output_path,
     get_channel_folder_name,
 )
+from core.logger import log_info, log_warn, log_error
 
 
 # ─── Callbacks ────────────────────────────────────────────────────────────────
@@ -156,6 +157,7 @@ class Downloader:
     def stop(self):
         """Minta downloader berhenti setelah file saat ini selesai."""
         self._stop_event.set()
+        log_info(f"Stop requested channel={self.channel}")
 
     def run(self):
         """Jalankan proses download secara synchronous."""
@@ -176,20 +178,31 @@ class Downloader:
                 self.callbacks.error(
                     "Belum login. Jalankan login dulu dari menu atau --login."
                 )
+                log_error("Download aborted: not authorized")
                 return
 
             self._download_all(client)
 
         except errors.FloodWaitError as e:
-            self.callbacks.error(f"Flood wait: harus tunggu {e.seconds} detik.")
+            msg = f"Flood wait: harus tunggu {e.seconds} detik."
+            self.callbacks.error(msg)
+            log_warn(f"FloodWait {e.seconds}s channel={self.channel}")
         except errors.ChannelPrivateError:
-            self.callbacks.error("Channel private atau tidak ditemukan.")
+            msg = "Channel private atau tidak ditemukan."
+            self.callbacks.error(msg)
+            log_error(f"ChannelPrivateError channel={self.channel}")
         except errors.UsernameNotOccupiedError:
-            self.callbacks.error(f"Username '{self.channel}' tidak ditemukan.")
+            msg = f"Username '{self.channel}' tidak ditemukan."
+            self.callbacks.error(msg)
+            log_error(f"UsernameNotOccupied channel={self.channel}")
         except ConnectionError as e:
-            self.callbacks.error(f"Koneksi gagal: {e}")
+            msg = f"Koneksi gagal: {e}"
+            self.callbacks.error(msg)
+            log_error(f"ConnectionError channel={self.channel} err={e}")
         except Exception as e:
-            self.callbacks.error(f"Error tidak terduga: {e}")
+            msg = f"Error tidak terduga: {e}"
+            self.callbacks.error(msg)
+            log_error(f"Unexpected error channel={self.channel} err={e}")
 
         finally:
             if client:
@@ -197,6 +210,7 @@ class Downloader:
                     client.disconnect()
                 except Exception as e:
                     self.callbacks.error(f"Error saat disconnect: {e}")
+                    log_error(f"Disconnect error: {e}")
 
     def run_in_thread(self) -> threading.Thread:
         """Jalankan download di background thread. Kembalikan thread-nya."""
@@ -228,6 +242,12 @@ class Downloader:
 
         if not is_explicit_range and resume.last_id > 0:
             print(f"Resume  : last_id {resume.last_id}")
+            log_info(f"Resume loaded channel={self.channel} last_id={resume.last_id}")
+
+        log_info(
+            f"Start download channel={self.channel} filter={self.filter} "
+            f"limit={self.limit} min_id={self.min_id} max_id={self.max_id}"
+        )
 
         total: Union[int, str] = "?"
 
@@ -267,6 +287,7 @@ class Downloader:
             reverse=True
         ):
             if self._stop_event.is_set():
+                log_info(f"Download stopped by user channel={self.channel}")
                 if not is_explicit_range:
                     resume.flush()
                 return
@@ -300,6 +321,7 @@ class Downloader:
                 if compare_index.exists(output_path):
                     self.callbacks.file(display_count, total, f"(SKIP) {filename}")
                     self.callbacks.progress(100.0, "SKIP", "-")
+                    log_info(f"Skip existing file={filename} channel={self.channel}")
 
                     if not is_explicit_range:
                         resume.update(message.id)
@@ -321,13 +343,16 @@ class Downloader:
                     downloaded_count += 1
                     download_success = True
                     compare_index.add(output_path)
+                    log_info(f"Downloaded file={filename} channel={self.channel}")
                     break
                 except errors.FloodWaitError as e:
                     wait_time = e.seconds
                     self.callbacks.error(f"[RETRY] FloodWait {wait_time}s")
+                    log_warn(f"FloodWait retry {wait_time}s file={filename} channel={self.channel}")
                     time.sleep(wait_time)
                 except Exception as e:
                     self.callbacks.error(f"Gagal download {filename}: {e}")
+                    log_error(f"Download failed file={filename} channel={self.channel} err={e}")
                     break
 
             if download_success and not is_explicit_range:
@@ -342,19 +367,21 @@ class Downloader:
 
             if self.limit is not None:
                 if downloaded_count >= self.limit:
-                    self.callbacks.summary(
-                        f"✔ Download selesai ({downloaded_count}/{self.limit} file berhasil)"
-                    )
+                    summary = f"✔ Download selesai ({downloaded_count}/{self.limit} file berhasil)"
                 else:
-                    self.callbacks.summary(
-                        f"⚠ Download selesai ({downloaded_count}/{self.limit} file ditemukan)"
-                    )
+                    summary = f"⚠ Download selesai ({downloaded_count}/{self.limit} file ditemukan)"
             else:
                 skip_count = display_count - downloaded_count
-                self.callbacks.summary(
+                summary = (
                     f"ℹ Selesai! {display_count} file diproses "
                     f"({downloaded_count} download, {skip_count} skip)"
                 )
+
+            self.callbacks.summary(summary)
+            log_info(
+                f"Download finished channel={self.channel} "
+                f"downloaded={downloaded_count} skipped={display_count - downloaded_count}"
+            )
 
     def _download_single(self, client: TelegramClient, message, output_path: str):
         """Download satu file dengan progress callback."""
