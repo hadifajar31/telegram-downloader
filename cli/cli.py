@@ -183,3 +183,6 @@ def main(args=None):
 
         _clear_progress_line()
         print("STOPPED.")
+
+if __name__ == "__main__":
+    main()
