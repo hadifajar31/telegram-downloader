@@ -14,7 +14,7 @@ from telethon.sync import TelegramClient
 from telethon import errors
 
 from config.config import API_ID, API_HASH, SESSION_PATH, OUTPUT_DIR
-from core.compare import CompareIndex
+from core.dedup.engine import Deduplicator, VALID_DEDUP_MODES, DEFAULT_DEDUP_MODE
 from core.resume import ResumeManager
 from core.filters import (
     VALID_FILTERS,
@@ -105,9 +105,10 @@ class Downloader:
         Parameters
         ----------
         config : dict
-            channel : str   → channel ID / username
-            filter  : str   → salah satu dari VALID_FILTERS
-            limit   : int   → jumlah file, None = semua
+            channel    : str   → channel ID / username
+            filter     : str   → salah satu dari VALID_FILTERS
+            limit      : int   → jumlah file, None = semua
+            dedup_mode : str   → salah satu dari VALID_DEDUP_MODES
 
         callbacks : DownloadCallbacks
         """
@@ -120,11 +121,20 @@ class Downloader:
         self.max_id = config.get("max_id", 0)
         self.from_date = config.get("from_date")
         self.to_date = config.get("to_date")
+        self.dedup_mode = config.get("dedup_mode", DEFAULT_DEDUP_MODE)
         self.callbacks = callbacks
         self._stop_event = threading.Event()
 
         if self.filter not in VALID_FILTERS:
-            raise ValueError(f"Filter tidak valid: '{self.filter}'. Pilih dari: {VALID_FILTERS}")
+            raise ValueError(
+                f"Filter tidak valid: '{self.filter}'. Pilih dari: {VALID_FILTERS}"
+            )
+
+        if self.dedup_mode not in VALID_DEDUP_MODES:
+            raise ValueError(
+                f"Dedup mode tidak valid: '{self.dedup_mode}'. "
+                f"Pilih dari: {sorted(VALID_DEDUP_MODES)}"
+            )
 
         if not raw_channel:
             raise ValueError("Channel tidak boleh kosong.")
@@ -225,8 +235,16 @@ class Downloader:
         channel_folder = get_channel_folder_name(entity)
 
         channel_base = os.path.join(OUTPUT_DIR, channel_folder)
-        compare_index = CompareIndex(channel_base)
-        compare_index.build()
+
+        # Init dedup engine
+        dedup = Deduplicator(
+            mode=self.dedup_mode,
+            channel_base=channel_base,
+        )
+
+        # Build index hanya kalau dedup aktif
+        if self.dedup_mode != "off":
+            dedup.build()
 
         total_messages = client.get_messages(entity, limit=1).total
         print(f"Total   : {total_messages} messages")
@@ -246,7 +264,8 @@ class Downloader:
 
         log_info(
             f"Start download channel={self.channel} filter={self.filter} "
-            f"limit={self.limit} min_id={self.min_id} max_id={self.max_id}"
+            f"limit={self.limit} min_id={self.min_id} max_id={self.max_id} "
+            f"dedup_mode={self.dedup_mode}"
         )
 
         total: Union[int, str] = "?"
@@ -316,12 +335,15 @@ class Downloader:
 
             display_count += 1
 
-            # Native-like media → skip kalau sudah ada
+            # Native-like media → cek dedup engine
             if media_type in NATIVE_FILENAME_TYPES:
-                if compare_index.exists(output_path):
+                if dedup.exists(output_path):
                     self.callbacks.file(display_count, total, f"(SKIP) {filename}")
                     self.callbacks.progress(100.0, "SKIP", "-")
-                    log_info(f"Skip existing file={filename} channel={self.channel}")
+                    log_info(
+                        f"Skip existing file={filename} channel={self.channel} "
+                        f"dedup_mode={self.dedup_mode}"
+                    )
 
                     if not is_explicit_range:
                         resume.update(message.id)
@@ -342,7 +364,7 @@ class Downloader:
                     self._download_single(client, message, output_path)
                     downloaded_count += 1
                     download_success = True
-                    compare_index.add(output_path)
+                    dedup.add(output_path)
                     log_info(f"Downloaded file={filename} channel={self.channel}")
                     break
                 except errors.FloodWaitError as e:
@@ -443,9 +465,10 @@ def run_downloader(config: dict, callbacks: DownloadCallbacks):
     Parameters
     ----------
     config : dict
-        channel : str
-        filter  : str
-        limit   : int | None
+        channel    : str
+        filter     : str
+        limit      : int | None
+        dedup_mode : str
     callbacks : DownloadCallbacks
     """
     downloader = Downloader(config, callbacks)

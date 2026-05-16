@@ -28,9 +28,9 @@
 
 ### Mode Dedup 
 
-* [ ] Off
+* [x] Off
 
-* [ ] Fast Skip
+* [x] Fast Skip
 
 * [ ] Smart Skip
 

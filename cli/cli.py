@@ -7,6 +7,7 @@ import argparse
 import sys
 
 from core.downloader import Downloader, DownloadCallbacks, VALID_FILTERS
+from core.dedup.engine import VALID_DEDUP_MODES, DEFAULT_DEDUP_MODE
 
 
 # ─── Callbacks untuk CLI ──────────────────────────────────────────────────────
@@ -25,21 +26,17 @@ def _make_cli_callbacks() -> DownloadCallbacks:
     """Buat callbacks yang print output ke terminal."""
 
     def on_progress(percent: float, speed: str, eta: str):
-        # Print di baris yang sama, timpa terus
         print(f"\r  Progress: {percent:5.1f}%  |  {speed}  |  ETA: {eta}   ", end="", flush=True)
 
     def on_file(current: int, total: int, filename: str):
-        # Bersihkan progress line sebelum print nama file baru
         _clear_progress_line()
         print(f"[{current}/{total}] {filename}")
 
     def on_error(message: str):
-        # Bersihkan progress line sebelum print error
         _clear_progress_line(sys.stderr)
         print(f"[ERROR] {message}", file=sys.stderr)
 
     def on_summary(message: str):
-        # Bersihkan progress line sebelum print summary
         _clear_progress_line()
         print(message)
 
@@ -116,6 +113,19 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Tanggal akhir download (YYYY-MM-DD)",
     )
 
+    parser.add_argument(
+        "--dedup-mode",
+        "-d",
+        choices=sorted(VALID_DEDUP_MODES),
+        default=DEFAULT_DEDUP_MODE,
+        help=(
+            f"Mode dedup: "
+            f"fast (skip file yang sudah ada), "
+            f"off (download semua tanpa cek). "
+            f"Default: {DEFAULT_DEDUP_MODE}"
+        ),
+    )
+
     return parser
 
 
@@ -141,6 +151,7 @@ def main(args=None):
         "max_id": parsed.max_id,
         "from_date": parsed.from_date,
         "to_date": parsed.to_date,
+        "dedup_mode": parsed.dedup_mode,
     }
 
     callbacks = _make_cli_callbacks()
@@ -164,6 +175,7 @@ def main(args=None):
     print(f"Max ID  : {config['max_id'] or '-'}")
     print(f"From    : {config['from_date'] or '-'}")
     print(f"To      : {config['to_date'] or '-'}")
+    print(f"Dedup   : {config['dedup_mode']}")
     print()
     print("Memulai download...")
 

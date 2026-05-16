@@ -1,3 +1,20 @@
+"""
+main.py
+Entry point utama Teleoder.
+
+Support:
+- Interactive menu
+- CLI mode
+- Login mode
+- Future GUI mode
+
+Flow:
+- Tanpa argumen → masuk menu interaktif
+- --cli         → langsung jalankan downloader CLI
+- --login       → login Telegram
+- --gui         → placeholder GUI mode
+"""
+
 import argparse
 
 from cli.cli import main as cli_main
@@ -93,7 +110,22 @@ def run_menu():
             from_date = prompt_date("Masukkan from date (kosongkan untuk skip): ")
             to_date = prompt_date("Masukkan to date (kosongkan untuk skip): ")
 
-            args = ["--channel",channel, "--filter", filter_type]
+            print("\n=== Dedup ===")
+            print("1. fast  - skip file yang sudah ada (default)")
+            print("2. off   - download semua tanpa cek")
+
+            dedup_map = {
+                "1": "fast",
+                "2": "off",
+            }
+
+            dedup_mode = prompt_choice(
+                "Masukkan pilihan (kosongkan untuk fast): ",
+                choices=dedup_map,
+                default="1",
+            )
+
+            args = ["--channel", channel, "--filter", filter_type, "--dedup-mode", dedup_mode]
 
             if limit is not None:
                 args += ["--limit", str(limit)]
