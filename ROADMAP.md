@@ -136,8 +136,7 @@
   - [x] reusable prompt helper
 * [x] Cleanup terminal progress line after stop/download finish
 * [x] Better progress output for very fast downloads
-* [ ] Logging (opsional)
-
+* [ ] Logging
 ---
 
 ## 🖥️ Phase 5 — GUI
@@ -159,9 +158,9 @@
 > Tidak urgent, kerjakan setelah fitur utama selesai
 
 * [ ] Logout akun
-* [ ] Fix main.py --cli argument forwarding
-* [ ] Prevent downloader auto-login prompt
-* [ ] Add __main__ entry for cli.py
+* [x] Fix main.py --cli argument forwarding
+* [x] Prevent downloader auto-login prompt
+* [x] Add __main__ entry for cli.py
 * [x] Improve CLI UX
 * [x] Only create album folder for grouped media with >1 item
 * [x] Optimize save resume (batch, tidak setiap pesan)
@@ -187,4 +186,4 @@
 ✔ Resume batch save
 
 ➡️ NEXT:
-* [ ] Logging (opsional)
+* [ ] Logging
