@@ -34,7 +34,7 @@
 
 * [ ] Smart Skip
 
-* [ ] MD5 Dedup
+* [ ] Content  Dedup
 
 ### Topic System
 
@@ -58,7 +58,7 @@
 
 ### Dedup Engine
 
-* [ ] Hash scanner
+* [x] Hash scanner
 
 * [ ] Hash cache/database
 
@@ -193,8 +193,6 @@
 ✔ Resume batch save
 
 ➡️ NEXT:
-* [ ] Hash scanner
-
 * [ ] Hash cache/database
 
 * [ ] Global media index
